@@ -1,30 +1,33 @@
-Software de gestão de estoque com catalago - Catálogo Fácil
+<img width="1524" height="585" alt="cabeçalho ilustrado" src="https://github.com/user-attachments/assets/d94b2217-572f-4485-ab86-04cca4da3b3d" />
+
+## Software de gestão de estoque com catalago - Catálogo Fácil
 
 ## Download
 
 Baixe a versão mais recente na aba **Releases** do projeto a direita -->
 
-Tutorial de como usar em:
+## Tutorial de como usar em:
 
 https://www.facebook.com/profile.php?id=61577418121955
 
-Catálogo Fácil é uma aplicação web local desenvolvida em Flask, com persistência em SQLite, voltada à gestão de produtos, categorias, clientes, vendas e catálogos digitais com personalização de UX. 
+## Catálogo Fácil é uma aplicação web local desenvolvida em Flask, com persistência em SQLite, voltada à gestão de produtos, categorias, clientes, vendas e catálogos digitais com personaliza![Uploading ChatGPT Image 25 de mar. de 2026, 15_05_49.png…]()
+ção de UX. 
 
    O Software inclui:
 
-/ Aplicação web local com acessível pela rede.
+// Aplicação web local com acessível pela rede.
 
-/ Sistema de gestão comercial para pequenas lojas.
+// Sistema de gestão comercial para pequenas lojas.
 
-/ Sistema de catálogo digital + Personalização de UX
+// Sistema de catálogo digital + Personalização de UX
 
-/ Software de gestão de produto, clientes e vendas.
+// Software de gestão de produto, clientes e vendas.
 
    O Foco deste software é servir de formar acessível um a gestão de estoque para pequenas lojas e pessoas que trabalham com vendas com contato direto a seus clientes, tornando o que normalmente vemos sempre sendo feito fisicamente um pouco mais tecnológico.
 
 
 
-Com o uso de Catálogo Fácil a 'loja' terá:
+## Com o uso de Catálogo Fácil a 'loja' terá:
 
 
 
