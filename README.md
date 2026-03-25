@@ -10,8 +10,7 @@ Baixe a versão mais recente na aba **Releases** do projeto a direita -->
 
 https://www.facebook.com/profile.php?id=61577418121955
 
-## Catálogo Fácil é uma aplicação web local desenvolvida em Flask, com persistência em SQLite, voltada à gestão de produtos, categorias, clientes, vendas e catálogos digitais com personaliza![Uploading ChatGPT Image 25 de mar. de 2026, 15_05_49.png…]()
-ção de UX. 
+## Catálogo Fácil é uma aplicação web local desenvolvida em Flask, com persistência em SQLite, voltada à gestão de produtos, categorias, clientes, vendas e catálogos digitais com personalização de UX. 
 
    O Software inclui:
 
