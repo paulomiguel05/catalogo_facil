@@ -1,0 +1,217 @@
+:root {
+    --bg: #070a11;
+    --bg-soft: #0f1420;
+    --bg-elevated: #121827;
+    --card: rgba(17, 24, 39, 0.88);
+    --card-2: rgba(22, 30, 48, 0.92);
+    --card-3: rgba(27, 37, 58, 0.94);
+    --border: rgba(170, 188, 255, 0.12);
+    --border-strong: rgba(170, 188, 255, 0.2);
+    --text: #eef2ff;
+    --text-soft: #d9e1ff;
+    --muted: #9aa7c2;
+    --primary: #8b5cf6;
+    --primary-2: #6d28d9;
+    --primary-3: #4f46e5;
+    --primary-soft: rgba(139, 92, 246, 0.18);
+    --success: #22c55e;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --shadow: 0 22px 55px rgba(2, 6, 23, 0.38);
+    --shadow-soft: 0 12px 28px rgba(2, 6, 23, 0.24);
+    --radius: 22px;
+    --radius-sm: 14px;
+    --transition: 220ms ease;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+html, body {
+    margin: 0;
+    min-height: 100%;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background:
+        linear-gradient(180deg, #000000 0%, #0b101b 48%, #1c1e27 100%);
+    color: var(--text);
+}
+
+body {
+    position: relative;
+    overflow-x: hidden;
+}
+
+body::before,
+body::after {
+    content: "";
+    position: fixed;
+    inset: auto;
+    pointer-events: none;
+    z-index: -2;
+    border-radius: 999px;
+    filter: blur(18px);
+    opacity: 0.45;
+    animation: floatGlow 14s ease-in-out infinite;
+}
+
+body::before {
+    width: 340px;
+    height: 340px;
+    top: 90px;
+    right: -60px;
+    background: radial-gradient(circle, rgba(139, 92, 246, 0.32), transparent 68%);
+}
+
+body::after {
+    width: 280px;
+    height: 280px;
+    bottom: 8%;
+    left: -80px;
+    animation-delay: -6s;
+    background: radial-gradient(circle, rgba(59, 130, 246, 0.22), transparent 68%);
+}
+
+.app-background {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: -3;
+    overflow: hidden;
+}
+
+.bg-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(139, 92, 246, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(139, 92, 246, 0.05) 1px, transparent 1px);
+    background-size: 46px 46px;
+    mask-image: radial-gradient(circle at center, black 28%, transparent 82%);
+    opacity: 0.38;
+}
+
+.bg-stars {
+    position: absolute;
+    inset: 0;
+    background-image:
+        radial-gradient(circle at 15% 20%, rgba(255,255,255,0.55) 0 1.2px, transparent 1.4px),
+        radial-gradient(circle at 82% 18%, rgba(255,255,255,0.4) 0 1.1px, transparent 1.3px),
+        radial-gradient(circle at 65% 44%, rgba(255,255,255,0.35) 0 1px, transparent 1.2px),
+        radial-gradient(circle at 22% 76%, rgba(255,255,255,0.25) 0 1.1px, transparent 1.3px),
+        radial-gradient(circle at 91% 67%, rgba(255,255,255,0.24) 0 1px, transparent 1.2px),
+        radial-gradient(circle at 36% 58%, rgba(255,255,255,0.28) 0 1px, transparent 1.2px);
+    opacity: 0.75;
+    animation: twinkle 10s linear infinite alternate;
+}
+
+.bg-orb {
+    position: absolute;
+    border-radius: 999px;
+    filter: blur(20px);
+    opacity: 0.32;
+    animation: floatGlow 18s ease-in-out infinite;
+}
+
+.orb-1 {
+    width: 260px;
+    height: 260px;
+    top: 15%;
+    left: -80px;
+    background: radial-gradient(circle, rgba(139, 92, 246, 0.42), transparent 70%);
+}
+
+.orb-2 {
+    width: 320px;
+    height: 320px;
+    top: 45%;
+    right: -90px;
+    background: radial-gradient(circle, rgba(59, 130, 246, 0.28), transparent 70%);
+    animation-delay: -7s;
+}
+
+.orb-3 {
+    width: 240px;
+    height: 240px;
+    bottom: -70px;
+    left: 38%;
+    background: radial-gradient(circle, rgba(147, 51, 234, 0.22), transparent 72%);
+    animation-delay: -3s;
+}
+
+img{
+    display: center;
+    max-width: 100%;
+    height: auto;
+}    
+
+a {
+    color: inherit;
+}
+
+
+
+main, section, form, .hero, .card, .table-wrapper, .summary-card, .details-card, .modal-box {
+    animation: cardEnter 420ms ease both;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    margin-top: 0;
+    color: #f5f7ff;
+    letter-spacing: -0.02em;
+}
+
+h1 {
+    font-size: clamp(2rem, 2vw + 1.2rem, 2.7rem);
+    line-height: 1.05;
+}
+
+h2 {
+    font-size: clamp(1.55rem, 1.3vw + 1.1rem, 2rem);
+}
+
+h3 {
+    font-size: 1.08rem;
+}
+
+p {
+    color: var(--muted);
+    line-height: 1.7;
+}
+
+hr {
+    border: 0;
+    height: 1px;
+    margin: 6px 0;
+    background: linear-gradient(90deg, transparent, rgba(170, 188, 255, 0.18), transparent);
+}
+
+::selection {
+    background: rgba(139, 92, 246, 0.35);
+    color: #fff;
+}
+
+@keyframes floatGlow {
+    0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+    50% { transform: translate3d(0, -18px, 0) scale(1.06); }
+}
+
+@keyframes twinkle {
+    from { opacity: 0.45; }
+    to { opacity: 0.9; }
+}
+
+@keyframes cardEnter {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
