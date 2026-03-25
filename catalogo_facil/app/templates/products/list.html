@@ -1,0 +1,259 @@
+{% extends 'base.html' %}
+
+{% block title %}Produtos{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2>Produtos</h2>
+    <div class="search-box">
+        <form method="get" action="{{ url_for('products.list_products') }}">
+            <input type="text" name="search" placeholder="Nome do produto..." value="{{ search or '' }}">
+            <input type="hidden" name="sort" value="{{ sort or '' }}">
+            <button type="submit">🔍</button>
+        </form>
+    </div>
+
+    <div class="actions" style="margin-bottom: 20px;">
+        <a class="btn btn-secondary" href="{{ url_for('products.list_products') }}">Limpar filtros</a>
+        <a class="btn" href="{{ url_for('products.create_product') }}">Novo produto</a>
+    </div>
+</div>
+
+<div class="page-header">
+    <p>Gerencie seu catálogo de produtos, atualize preços e estoque.</p>
+
+    <div class="cost-toggle">
+        <label for="chk">Mostrar preço de custo</label>
+        <input type="checkbox" id="chk" onchange="toggleCostVisibility()">
+        <label for="chk" class="switch">
+            <span class="slider"></span>
+        </label>
+    </div>
+</div>
+<div class="table-wrapper">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Imagem</th>
+                
+                <th>
+                    <a href="{{ url_for('products.list_products', sort=build_sort_url('nome'), search=search) }}"
+                       style="text-decoration: none; color: inherit; gap: 5px;">
+                        Nome
+                        {% if sort_map.get('nome') == 'asc' %}
+                            <span>↑</span>
+                        {% elif sort_map.get('nome') == 'desc' %}
+                            <span>↓</span>
+                        {% else %}
+                            <span style="opacity: 0.3;">⇅</span>
+                        {% endif %}
+                    </a>
+                </th>
+
+                <th>
+                    <a href="{{ url_for('products.list_products', sort=build_sort_url('categoria'), search=search) }}"
+                       style="text-decoration: none; color: inherit; gap: 5px;">
+                        Categoria
+                        {% if sort_map.get('categoria') == 'asc' %}
+                            <span>↑</span>
+                        {% elif sort_map.get('categoria') == 'desc' %}
+                            <span>↓</span>
+                        {% else %}
+                            <span style="opacity: 0.3;">⇅</span>
+                        {% endif %}
+                    </a>
+                </th>
+                
+                <th class="col-custo">
+                    <a href="{{ url_for('products.list_products', sort=build_sort_url('p_custo'), search=search) }}"
+                    style="text-decoration: none; color: inherit; gap: 5px;">
+                        Preço Custo
+                        {% if sort_map.get('p_custo') == 'asc' %}
+                            <span>↑</span>
+                        {% elif sort_map.get('p_custo') == 'desc' %}
+                            <span>↓</span>
+                        {% else %}
+                            <span style="opacity: 0.3;">⇅</span>
+                        {% endif %}
+                    </a>
+                </th>
+
+                <th>
+                    <a href="{{ url_for('products.list_products', sort=build_sort_url('preco'), search=search) }}"
+                       style="text-decoration: none; color: inherit; gap: 5px;">
+                        Preço
+                        {% if sort_map.get('preco') == 'asc' %}
+                            <span>↑</span>
+                        {% elif sort_map.get('preco') == 'desc' %}
+                            <span>↓</span>
+                        {% else %}
+                            <span style="opacity: 0.3;">⇅</span>
+                        {% endif %}
+                    </a>
+                </th>
+
+                <th>
+                    <a href="{{ url_for('products.list_products', sort=build_sort_url('estoque'), search=search) }}"
+                       style="text-decoration: none; color: inherit; gap: 5px;">
+                        Estoque
+                        {% if sort_map.get('estoque') == 'asc' %}
+                            <span>↑</span>
+                        {% elif sort_map.get('estoque') == 'desc' %}
+                            <span>↓</span>
+                        {% else %}
+                            <span style="opacity: 0.3;">⇅</span>
+                        {% endif %}
+                    </a>
+                </th>
+
+                <th>
+                    <a href="{{ url_for('products.list_products', sort=build_sort_url('ativo'), search=search) }}"
+                        style="text-decoration: none; color: inherit; gap: 5px;">
+                        Status
+                        {% if sort_map.get('ativo') == 'asc' %}
+                            <span>↑</span>  
+                        {% elif sort_map.get('ativo') == 'desc' %}
+                            <span>↓</span>
+                        {% else %}
+                            <span style="opacity: 0.3;">⇅</span>
+                        {% endif %}
+                    </a>
+                </th>
+
+                <th>Ações</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for product in products %}
+                <tr>
+                    <td>
+                        {% if product.imagem %}
+                            <img
+                                src="{{ url_for('main.media_produtos', filename=product.imagem) }}"
+                                alt="{{ product.nome }}"
+                                style="width: 56px; height: 56px; object-fit: cover; border-radius: 12px;"
+                            >
+                        {% else %}
+                            <span>Sem imagem</span>
+                        {% endif %}
+                    </td>
+
+                    <td>{{ product.nome }}</td>
+
+                    <td>
+                        {{ product.categoria.nome if product.categoria else 'Sem categoria' }}
+                    </td>
+
+                    <td class="col-custo">R$ {{ "%.2f"|format(product.p_custo) }}</td>
+
+                    <td>R$ {{ '%.2f'|format(product.preco) }}</td>
+
+                    <td>{{ product.estoque }}</td>
+
+                    <td>
+                        {% if product.ativo %}
+                            <span class="badge badge-success">Ativo</span>
+                        {% else %}
+                            <span class="badge badge-danger">Inativo</span>
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        <div class="actions">
+                            <a class="btn btn-secondary" href="{{ url_for('products.edit_product', product_id=product.id) }}">
+                                Editar
+                            </a>
+
+                            <form method="post" action="{{ url_for('products.delete_product', product_id=product.id) }}" style="display: inline;">
+                                <button 
+                                    type="button" 
+                                    class="btn btn-sm btn-danger" 
+                                    onclick='openDeleteModal({{ product.id }}, {{ product.nome|tojson }})'>
+                                    Deletar 
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="7" style="text-align: center;">Nenhum produto cadastrado.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div id="delete-product-modal" class="modal-overlay">
+    <div class="modal-box">
+        <h3>Deseja mesmo deletar este produto?</h3>
+        <p id="delete-product-text">Essa ação apaga o produto permanentemente.</p>
+        <p id="delete-product-countdown" style="margin-top: 8px; opacity: 0.75;"></p>
+
+        <div class="actions">
+            <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">
+                Não
+            </button>
+
+            <form id="delete-product-form" method="post" action="">
+                <button type="submit" id="confirm-delete-product-btn" class="btn btn-danger">
+                    Sim, remover produto
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+
+function toggleCostVisibility() {
+    const checked = document.getElementById("chk").checked;
+    const costColumns = document.querySelectorAll(".col-custo");
+    costColumns.forEach(col => {
+        col.style.display = checked ? "" : "none";
+    });
+
+    localStorage.setItem("mostrarPrecoCusto", checked);
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    const checked = localStorage.getItem("mostrarPrecoCusto") === "true";
+    const chk = document.getElementById("chk");
+    chk.checked = checked;
+    toggleCostVisibility();
+});
+
+function openDeleteModal(productId, productName) {
+    const modal = document.getElementById('delete-product-modal');
+    const form = document.getElementById('delete-product-form');
+    const text = document.getElementById('delete-product-text');
+    const confirmBtn = document.getElementById('confirm-delete-product-btn');
+
+    form.action = `/produtos/${productId}/excluir`;
+    text.textContent = `Produto "${productName}". Essa ação não pode ser desfeita.`;
+    confirmBtn.textContent = 'Sim, remover produto';
+
+    modal.classList.add('active');
+}
+
+function closeDeleteModal() {
+    const modal = document.getElementById('delete-product-modal');
+    modal.classList.remove('active');
+}
+
+document.addEventListener('click', function (event) {
+    const modal = document.getElementById('delete-product-modal');
+
+    if (event.target === modal) {
+        closeDeleteModal();
+    }
+});
+
+</script>
+
+{% set endpoint = 'products.list_products' %}
+{% set kwargs = {'search': search} %}
+{% include 'partials/pagination.html' %}
+
+{% endblock %}

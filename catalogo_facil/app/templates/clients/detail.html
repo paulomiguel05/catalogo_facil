@@ -1,0 +1,287 @@
+{% extends 'base.html' %}
+
+{% block title %}Cliente - {{ client.nome }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h4>Detalhes do cliente:</h4>
+        <h1>{{ client.nome }}</h1>
+    </div>
+
+    <div class="actions">
+        <a href="{{ url_for('clients.edit_client', client_id=client.id) }}" class="btn btn-secondary">
+            Editar cliente
+        </a>
+
+        <button 
+            type="button" 
+            class="btn btn-danger" 
+            onclick='openDeleteModal({{ client.id }}, {{ client.nome|tojson }})'>
+            Deletar cliente
+        </button>
+
+        <a href="{{ url_for('clients.list_clients') }}" class="btn">
+            Voltar
+        </a>
+    </div>
+</div>
+
+<div class="card details-card">
+    <div class="details-grid">
+        <div>
+            <span class="detail-label">Telefone</span>
+            <p>{{ formatar_telefone_visual(client.numero) }}</p>
+        </div>
+
+        <div>
+            <span class="detail-label">CPF</span>
+            <p>{{ client.cpf or '-' }}</p>
+        </div>
+
+        <div class="details-full">
+            <span class="detail-label">Endereço</span>
+            <p>{{ client.endereco or '-' }}</p>
+        </div>
+    </div>
+</div>
+<div class="page-header second-header">
+    <div>
+        <h2>Compras</h2>
+    </div>
+</div>
+
+{% set ns = namespace(total_pendente=0, qtd_pendencias=0) %}
+{% for sale in sales %}
+    {% if sale.status != 'pago' %}
+        {% set ns.total_pendente = ns.total_pendente + sale.total %}
+        {% set ns.qtd_pendencias = ns.qtd_pendencias + 1 %}
+    {% endif %}
+{% endfor %}
+
+<div class="card client-debt-summary">
+    <div>
+        <span class="detail-label">Situação financeira</span>
+
+        {% if ns.qtd_pendencias > 0 %}
+            <h3>Cliente com pendência</h3>
+            <p>
+                Total em aberto:
+                <strong>R$ {{ '%.2f'|format(ns.total_pendente) }}</strong>
+            </p>
+            <small>
+                {{ ns.qtd_pendencias }} venda(s) pendente(s)
+            </small>
+        {% else %}
+            <h3>Cliente em dia</h3>
+            <p>
+                Total em aberto:
+                <strong>R$ 0.00</strong>
+            </p>
+            <small>Nenhuma pendência encontrada</small>
+        {% endif %}
+    </div>
+
+    <div class="actions debt-actions">
+        {% if ns.qtd_pendencias > 0 %}
+            <span class="badge badge-warning">Compra(s) pendente</span>
+
+            <a
+                class="btn btn-success"
+                target="_blank"
+                href="{{ url_for('clients.send_whatsapp_total_charge', client_id=client.id) }}"
+            >
+                Cobrar total
+            </a>
+        {% else %}
+            <span class="badge badge-success">Tudo em dia</span>
+        {% endif %}
+    </div>
+</div>
+
+</br>
+
+<div id="sales-history">
+    {% if sales %}
+        <div class="sales-history">
+            {% for sale in sales %}
+                <div class="card sale-card">
+                    <div class="sale-card-header">
+                        <div>
+                            <h3>Venda # {{ sale.id }}</h3>
+                            <p>{{ sale.data.strftime('%d/%m/%Y %H:%M') }}</p>
+                        </div>
+
+                        <div class="sale-total">
+                            <h2>Valor total: R$ {{ '%.2f'|format(sale.total) }}</h2>
+                            <small>Valor do lucro: R$ {{ '%.2f'|format(sale.lucro) }}</small>
+                        </div>
+
+                        {% if sale.status != 'pago' %}
+                            <div class="sale-actions-inline">
+                                <form method="post" action="{{ url_for('sales.mark_sale_as_paid', sale_id=sale.id) }}">
+                                    <button type="submit" class="btn btn-sm">
+                                        Marcar pago
+                                    </button>
+                                </form>
+
+                                <a class="btn btn-success btn-sm" target="_blank" href="{{ url_for('sales.send_whatsapp_charge', sale_id=sale.id) }}">
+                                    Cobrar
+                                </a>
+
+                                <span class="badge badge-warning">Pendente</span>
+                            </div>
+                        {% else %}
+                            <div class="sale-actions-inline">
+                                <span class="badge badge-success">Pago</span>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    {% if sale.items %}
+                        <div class="table-wrapper">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Img. Produto</th>
+                                        <th>Produto</th>
+                                        <th>Qtd.</th>
+                                        <th>Preço unitário</th>
+                                        <th>Subtotal</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in sale.items %}
+                                        <tr>
+                                            <td>
+                                                {% if item.product and item.product.imagem %}
+                                                    <img
+                                                        src="{{ url_for('main.media_produtos', filename=item.product.imagem) }}"
+                                                        alt="{{ item.product.nome }}"
+                                                        style="width: 60px; height: 60px; object-fit: cover; border-radius: 10px;"
+                                                    >
+                                                {% else %}
+                                                    <div style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; background: #f1f1f1; border-radius: 10px; font-size: 12px; color: #777;">
+                                                        Sem imagem
+                                                    </div>
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ item.product.nome if item.product else '-' }}</td>
+                                            <td>{{ item.quantidade }}</td>
+                                            <td>R$ {{ '%.2f'|format(item.preco_unitario) }}</td>
+                                            <td>R$ {{ '%.2f'|format(item.subtotal) }}</td>
+                                            <td>
+                                                {% if sale.status == 'pago' %}
+                                                    <span class="badge badge-success">Pago</span>
+                                                {% else %}
+                                                    <span class="badge badge-warning">Pendente</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="empty-state">Esta venda não possui itens.</p>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="card">
+            <p class="empty-state">Este cliente ainda não possui compras registradas.</p>
+        </div>
+    {% endif %}
+</div>
+
+<div id="delete-client-modal" class="modal-overlay">
+    <div class="modal-box">
+        <h3>Deseja mesmo deletar este cliente?</h3>
+        <p id="delete-client-text">Essa ação apaga este cliente permanentemente.</p>
+        <p id="delete-client-countdown" style="margin-top: 8px; opacity: 0.75;"></p>
+
+        <div class="actions">
+            <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">
+                Não
+            </button>
+
+            <form id="delete-client-form" method="post" action="">
+                <button type="submit" id="confirm-delete-client-btn" class="btn btn-danger" disabled>
+                    Aguarde 3s
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+let deleteClientCountdownInterval = null;
+
+function openDeleteModal(clientId, clientName) {
+    const modal = document.getElementById('delete-client-modal');
+    const form = document.getElementById('delete-client-form');
+    const text = document.getElementById('delete-client-text');
+    const countdownText = document.getElementById('delete-client-countdown');
+    const confirmBtn = document.getElementById('confirm-delete-client-btn');
+
+    form.action = `/clientes/${clientId}/excluir`;
+    text.textContent = `Cliente "${clientName}". Essa ação não pode ser desfeita.`;
+
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = 'Aguarde 3s';
+    countdownText.textContent = 'Você poderá confirmar em 3 segundos.';
+
+    let seconds = 3;
+
+    if (deleteClientCountdownInterval) {
+        clearInterval(deleteClientCountdownInterval);
+    }
+
+    deleteClientCountdownInterval = setInterval(() => {
+        seconds--;
+
+        if (seconds > 0) {
+            confirmBtn.textContent = `Aguarde ${seconds}s`;
+            countdownText.textContent = `Você poderá confirmar em ${seconds} segundo${seconds > 1 ? 's' : ''}.`;
+        } else {
+            clearInterval(deleteClientCountdownInterval);
+            deleteClientCountdownInterval = null;
+            confirmBtn.disabled = false;
+            confirmBtn.textContent = 'Sim, remover cliente';
+            countdownText.textContent = '';
+        }
+    }, 1000);
+
+    modal.classList.add('active');
+}
+
+function closeDeleteModal() {
+    const modal = document.getElementById('delete-client-modal');
+    const confirmBtn = document.getElementById('confirm-delete-client-btn');
+    const countdownText = document.getElementById('delete-client-countdown');
+
+    if (deleteClientCountdownInterval) {
+        clearInterval(deleteClientCountdownInterval);
+        deleteClientCountdownInterval = null;
+    }
+
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = 'Aguarde 3s';
+    countdownText.textContent = '';
+
+    modal.classList.remove('active');
+}
+
+document.addEventListener('click', function (event) {
+    const modal = document.getElementById('delete-client-modal');
+
+    if (event.target === modal) {
+        closeDeleteModal();
+    }
+});
+</script>
+
+
+{%endblock %}

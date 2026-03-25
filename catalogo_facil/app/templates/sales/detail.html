@@ -1,0 +1,202 @@
+{% extends 'base.html' %}
+
+{% block title %}Detalhes da venda{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h2>Detalhes da venda # {{ sale.id }}</h2>
+        <p>Informações completas da venda selecionada.</p>
+    </div>
+
+    <div class="actions">
+        
+        {% if sale.status != 'pago' %}
+            <div>
+                <form method="post" action="{{ url_for('sales.mark_sale_as_paid', sale_id=sale.id) }}">
+                    <button type="submit" class="btn btn-sm">
+                        Marcar pago
+                    </button>
+                </form>
+            </div>
+            <div>
+                <button class="btn btn-success btn-sm" target="_blank" href="{{ url_for('sales.send_whatsapp_charge', sale_id=sale.id) }}">
+                    Cobrar
+                </button>
+            </div>
+        {% endif %}
+        <a class="btn btn-secondary" href="{{ url_for('sales.list_sales') }}">Voltar</a>
+    </div>
+    
+</div>
+
+<div class="form-card">
+    <div class="grid-2">
+        <div>
+            <strong>Cliente</strong>
+            <p>{{ sale.client.nome if sale.client else 'Sem cliente' }}</p>
+        </div>
+
+        <div>
+            <strong>Data</strong>
+            <p>{{ sale.data.strftime('%d/%m/%Y %H:%M') }}</p>
+        </div>
+    </div>
+
+    <div  class="grid-2">
+        <div>
+            <strong>Total da venda</strong>
+            <p>R$ {{ '%.2f'|format(sale.total) }}</p>
+        </div>
+        
+        <div>
+            <strong>Status</strong>
+            <p>
+                {% if sale.status == 'pago' %}
+                    <span class="badge badge-success">Pago</span>
+                {% else %}
+                    <span class="badge badge-warning">Pendente</span>
+                {% endif %}
+            </p>
+        </div>
+    </div>
+</div>
+
+<div class="table-wrapper" style="margin-top: 20px;">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Img. Produto</th>
+                <th>Produto</th>
+                <th>Quantidade</th>
+                <th>Preço unitário</th>
+                <th>Subtotal</th>
+                <th>Lucro</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for item in sale.items %}
+                <tr>
+                    <td>
+                        {% if item.product and item.product.imagem %}
+                            <img
+                                src="{{ url_for('main.media_produtos', filename=item.product.imagem) }}"
+                                alt="{{ item.product.nome }}"
+                                style="width: 56px; height: 56px; object-fit: cover; border-radius: 12px;"
+                            >
+                        {% else %}
+                            <span>Sem imagem</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ item.nome_produto }}</td>
+                    <td>{{ item.quantidade }}</td>
+                    <td>R$ {{ '%.2f'|format(item.preco_unitario) }}</td>
+                    <td>R$ {{ '%.2f'|format(item.subtotal) }}</td>
+                    <td>R$ {{ '%.2f'|format(item.subtotal - (item.quantidade * item.custo_unitario)) }}</td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="4" style="text-align: center;">Esta venda não possui itens.</td>
+                </tr>
+                
+            {% endfor %}
+        </tbody>
+    </table>
+</div></br>
+
+<button
+    type="button"
+    class="btn btn-danger btn-sm"
+    onclick='openDeleteModal({{ sale.id }}, {{ (sale.client.nome if sale.client else "Sem cliente")|tojson }})'>
+    Cancelar venda
+</button>
+
+<div id="delete-sale-modal" class="modal-overlay">
+    <div class="modal-box">
+        <h3>Deseja mesmo cancelar esta venda?</h3>
+        <p id="delete-sale-text">Essa ação irá cancelar a venda selecionada permanentemente.</p>
+        <p id="delete-sale-countdown" style="margin-top: 8px; opacity: 0.75;"></p>
+
+        <div class="actions">
+            <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">
+                Não
+            </button>
+
+            <form id="delete-sale-form" method="post" action="">
+                <button type="submit" id="confirm-delete-sale-btn" class="btn btn-danger" disabled>
+                    Aguarde 3s
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+let deleteSaleCountdownInterval = null;
+
+function openDeleteModal(saleId, clientName) {
+    const modal = document.getElementById('delete-sale-modal');
+    const form = document.getElementById('delete-sale-form');
+    const text = document.getElementById('delete-sale-text');
+    const countdownText = document.getElementById('delete-sale-countdown');
+    const confirmBtn = document.getElementById('confirm-delete-sale-btn');
+
+    form.action = `/vendas/${saleId}/excluir`;
+    text.textContent = `Venda do cliente "${clientName}". Essa ação não pode ser desfeita.`;
+
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = 'Aguarde 3s';
+    countdownText.textContent = 'Você poderá confirmar em 3 segundos.';
+
+    let seconds = 3;
+
+    if (deleteSaleCountdownInterval) {
+        clearInterval(deleteSaleCountdownInterval);
+    }
+
+    deleteSaleCountdownInterval = setInterval(() => {
+        seconds--;
+
+        if (seconds > 0) {
+            confirmBtn.textContent = `Aguarde ${seconds}s`;
+            countdownText.textContent = `Você poderá confirmar em ${seconds} segundo${seconds > 1 ? 's' : ''}.`;
+        } else {
+            clearInterval(deleteSaleCountdownInterval);
+            deleteSaleCountdownInterval = null;
+            confirmBtn.disabled = false;
+            confirmBtn.textContent = 'Sim, cancelar venda';
+            countdownText.textContent = '';
+        }
+    }, 1000);
+
+    modal.classList.add('active');
+}
+
+function closeDeleteModal() {
+    const modal = document.getElementById('delete-sale-modal');
+    const confirmBtn = document.getElementById('confirm-delete-sale-btn');
+    const countdownText = document.getElementById('delete-sale-countdown');
+
+    if (deleteSaleCountdownInterval) {
+        clearInterval(deleteSaleCountdownInterval);
+        deleteSaleCountdownInterval = null;
+    }
+
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = 'Aguarde 3s';
+    countdownText.textContent = '';
+
+    modal.classList.remove('active');
+}
+
+document.addEventListener('click', function (event) {
+    const modal = document.getElementById('delete-sale-modal');
+
+    if (event.target === modal) {
+        closeDeleteModal();
+    }
+});
+</script>
+
+{% endblock %}

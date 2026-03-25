@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+
+{% block title %}Consulta de Vendas{% endblock %}
+
+{% block content %}
+<div class="page-header no-print">
+    <h2>Consulta de vendas</h2>
+
+    <div class="actions">
+        <a class="btn btn-secondary" href="{{ url_for('sales.list_sales') }}">Voltar</a>
+        <a
+            class="btn"
+            href="{{ url_for('sales.export_sales_report_pdf', data_inicial=data_inicial, data_final=data_final, categoria=categoria) }}">
+            Dados em PDF ⭳
+        </a>
+    </div>
+</div>
+
+<form method="get" class="form-card no-print">
+    <div class="grid-4">
+        <label>
+            Data inicial
+            <input type="date" name="data_inicial" value="{{ data_inicial }}">
+        </label>
+
+        <label>
+            Data final
+            <input type="date" name="data_final" value="{{ data_final }}">
+        </label>
+
+        <label>
+            Categoria
+            <select name="categoria">
+                <option value="">Todas as categorias</option>
+                {% for cat in categorias %}
+                    <option value="{{ cat.nome }}" {% if categoria == cat.nome %}selected{% endif %}>
+                        {{ cat.nome }}
+                    </option>
+                {% endfor %}
+            </select>
+        </label>
+    </div>
+
+    <div class="actions">
+        <button class="btn" type="submit">Consultar</button>
+        <a class="btn btn-secondary" href="{{ url_for('sales.consult_sales') }}">Mês atual</a>
+    </div>
+</form>
+
+<div class="print-header only-print">
+    <h1>Catálogo Fácil</h1>
+    <h2>Relatório de Vendas</h2>
+    <p><strong>Período:</strong> {{ data_inicial }} até {{ data_final }}</p>
+    <p><strong>Categoria:</strong> {{ categoria if categoria else 'Todas as categorias' }}</p>
+    <p><strong>Gerado em:</strong> {{ data_geracao.strftime('%d/%m/%Y %H:%M') }}</p>
+</div>
+
+{% if searched %}
+    <div class="report-summary">
+        <div class="summary-card">
+            <span>Total de vendas</span>
+            <strong>{{ quantidade_vendas }}</strong>
+        </div>
+
+        <div class="summary-card">
+            <span>Faturamento no período</span>
+            <strong>R$ {{ '%.2f'|format(total_periodo) }}</strong>
+        </div>
+
+        <div class="summary-card">
+            <span>Lucro Real</span>
+            <strong>R$ {{ '%.2f'|format(lucro_periodo) }}</strong>
+        </div>
+    </div>
+
+    <div class="table-wrapper" style="margin-top: 24px;">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Cliente</th>
+                    <th>Data</th>
+                    <th>Total</th>
+                    <th>Itens</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for sale in sales %}
+                    <tr>
+                        <td>{{ sale.client.nome if sale.client else 'Sem cliente' }}</td>
+                        <td>{{ sale.data.strftime('%d/%m/%Y %H:%M') }}</td>
+                        <td>
+                            R$
+                            {{ '%.2f'|format(sale.total_filtrado if sale.total_filtrado is defined else sale.total) }}
+                        </td>
+                        <td>{{ sale.itens_filtrados if sale.itens_filtrados is defined else sale.items|length }}</td>
+                        <td>
+                            <div class="table-actions">
+                                <a class="btn btn-secondary btn-sm" href="{{ url_for('sales.detail_sale', sale_id=sale.id) }}">
+                                    Detalhes
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="5" style="text-align: center;">
+                            Nenhuma venda encontrada no período informado.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endif %}
+{% endblock %}

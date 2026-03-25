@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h2>{% if shop %}Editar Loja{% else %}Dados da Loja{% endif %}</h2>
+        <p class="page-subtitle">Essas informações aparecem no catálogo público e nos contatos da sua loja.</p>
+    </div>
+</div>
+
+<form method="POST" class="form-card">
+    <div class="form-grid">
+        <div class="form-group full">
+            <label for="nome">Nome da loja</label>
+            <input
+                type="text"
+                id="nome"
+                name="nome"
+                class="form-control"
+                maxlength="120"
+                required
+                value="{{ shop.nome if shop else '' }}"
+                placeholder="Ex: Catálogo Fácil"
+            >
+        </div>
+
+        <div class="form-group">
+            <label for="numero">Telefone / Celular</label>
+            <input
+                type="text"
+                id="numero"
+                name="numero"
+                class="form-control"
+                maxlength="20"
+                required
+                value="{{ shop.numero[2:] if shop and shop.numero and shop.numero.startswith('55') else (shop.numero if shop and shop.numero else '') }}"
+                placeholder="Ex: (11) 91234-5678"
+            >
+        </div>
+
+        <div class="form-group">
+            <label for="email">E-mail</label>
+            <input
+                type="email"
+                id="email"
+                name="email"
+                class="form-control"
+                maxlength="120"
+                value="{{ shop.email if shop and shop.email else '' }}"
+                placeholder="contato@loja.com"
+            >
+        </div>
+
+        <div class="form-group">
+            <label for="instagram">Instagram</label>
+            <input
+                type="text"
+                id="instagram"
+                name="instagram"
+                class="form-control"
+                maxlength="100"
+                value="{{ shop.instagram if shop and shop.instagram else '' }}"
+                placeholder="@minhaloja ou instagram.com/minhaloja"
+            >
+            <small class="form-help">Pode informar só o usuário, com ou sem @.</small>
+        </div>
+
+        <div class="form-group">
+            <label for="facebook">Facebook</label>
+            <input
+                type="text"
+                id="facebook"
+                name="facebook"
+                class="form-control"
+                maxlength="255"
+                value="{{ shop.facebook if shop and shop.facebook else '' }}"
+                placeholder="https://www.facebook.com/minhaloja"
+            >
+            <small class="form-help">Informe o link completo do Facebook.</small>
+        </div>
+    </div>
+
+    <label class= "form-group"> Dias de funcionamento</label>
+
+    <div class="weekly-activity">
+        
+        <div>
+            <b>Seg.<input type="checkbox" name="atividade[]" value="0" {% if shop and shop.atividade and 0 in shop.atividade %}checked{% endif %}></b>
+            <b>Ter.<input type="checkbox" name="atividade[]" value="1" {% if shop and shop.atividade and 1 in shop.atividade %}checked{% endif %}></b>
+            <b>Qua.<input type="checkbox" name="atividade[]" value="2" {% if shop and shop.atividade and 2 in shop.atividade %}checked{% endif %}></b>
+            <b>Qui.<input type="checkbox" name="atividade[]" value="3" {% if shop and shop.atividade and 3 in shop.atividade %}checked{% endif %}></b>
+            <b>Sex.<input type="checkbox" name="atividade[]" value="4" {% if shop and shop.atividade and 4 in shop.atividade %}checked{% endif %}></b>
+            <b>Sáb.<input type="checkbox" name="atividade[]" value="5" {% if shop and shop.atividade and 5 in shop.atividade %}checked{% endif %}></b>
+            <b>Dom.<input type="checkbox" name="atividade[]" value="6" {% if shop and shop.atividade and 6 in shop.atividade %}checked{% endif %}></b>
+        </div>
+
+    </div>
+
+    <div class="form-actions">
+        <button type="submit" class="btn">{% if shop %}Salvar alterações{% else %}Salvar dados{% endif %}</button>
+    </div>
+</form>
+{% endblock %}

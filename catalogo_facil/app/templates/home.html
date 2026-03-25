@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block title %}Início{% endblock %}
+
+{% block content %}
+<section class="hero hero-home">
+    <div class="hero-copy">
+        <h2>Gerencie produtos, clientes, vendas e crie catálogos</h2>
+        <p>
+            Organize o estoque, acompanhe o histórico dos clientes, registre vendas e monte
+            catálogos prontos para compartilhar.
+        </p>
+        {% if celular_link %}
+            <p> Para acessar pelo celular, abra este link nele: <a href="{{ celular_link }}" target="_blank">{{ celular_link }}</a></p>
+        {% endif %}
+
+        <div class="actions">
+            <a class="btn" href="{{ url_for('products.create_product') }}">Cadastrar produto</a>
+            <a class="btn btn-secondary" href="{{ url_for('sales.create_sale') }}">Registrar venda</a>
+            <a class="btn btn-secondary" href="{{ url_for('catalogs.list_catalogs') }}">Criar catálogo</a>
+        </div>
+    </div>
+
+    <div class="hero-visual">
+        <div class="hero-visual-card">
+            <img src="{{ url_for('static', filename='img/catalogos.png') }}" alt="Ilustração do Catalogo.Fácil">
+        </div>
+    </div>
+</section>
+
+<section class="quick-links">
+    <a class="quick-link-card" href="{{ url_for('products.list_products') }}">
+        <strong>
+                <span class="">
+                    <img src="{{ url_for('static', filename='img/produtos.png') }}" alt="Ícone do Produtos">
+                </span>
+            <p center:"", class="title-section">Produtos</p>
+        </strong>
+    </a>
+    <a class="quick-link-card" href="{{ url_for('clients.list_clients') }}">
+        <strong>
+            <span class="">
+                    <img src="{{ url_for('static', filename='img/clientes.png') }}" alt="Ícone do Clientes">
+            </span>
+            <p center:"", class="title-section">Clientes</p>
+        </strong>
+    </a>
+    <a class="quick-link-card" href="{{ url_for('sales.list_sales') }}">
+        <strong>
+            <span class="">
+                    <img src="{{ url_for('static', filename='img/vendas.png') }}" alt="Ícone do Vendas">
+            </span>
+            <p center:"", class="title-section">Vendas</p>
+        </strong>
+    </a>
+    <a class="quick-link-card" href="{{ url_for('catalogs.list_catalogs') }}">
+        <strong>
+            <span class="">
+                    <img src="{{ url_for('static', filename='img/catalogos.png') }}" alt="Ícone do Catalogos">
+            </span>
+            <p center:"", class="title-section">Catálogos</p>
+        </strong>
+    </a>
+    <a class="quick-link-card" href="{{ url_for('categories.list_categories') }}">
+        <strong>
+            <span class="">
+                    <img src="{{ url_for('static', filename='img/categorias.png') }}" alt="Ícone do Categorias">
+            </span>
+            <p center:"", class="title-section">Categorias</p>
+        </strong>
+    </a>
+    <a class="quick-link-card" href="{{ url_for('shops.manage_shop') }}">
+        <strong>
+            <span class="">
+                    <img src="{{ url_for('static', filename='img/loja.png') }}" alt="Ícone do Catalogo.Fácil">
+            </span>
+            <p center:"", class="title-section">Loja</p>
+        </strong>
+    </a>
+</section>
+{% endblock %}

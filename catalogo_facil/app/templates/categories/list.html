@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+
+{% block title %}Categorias{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2>Categorias</h2>
+
+    <div class="search-box">
+        <form method="get" action="{{ url_for('categories.list_categories') }}">
+            <input
+                type="text"
+                name="search"
+                placeholder="Nome da categoria..."
+                value="{{ search or '' }}"
+            >
+            <input type="hidden" name="sort" value="{{ sort or '' }}">
+            <button type="submit">🔍</button>
+        </form>
+    </div>
+
+    <div class="actions">
+        <a class="btn btn-secondary" href="{{ url_for('categories.list_categories') }}">Limpar filtros</a>
+        <a class="btn" href="{{ url_for('categories.create_category') }}">Nova categoria</a>
+    </div>
+</div>
+
+<div class="table-wrapper">
+    <table>
+        <thead>
+            <tr>
+                <th>
+                    <a
+                        href="{{ url_for('categories.list_categories', search=search, sort=build_sort_url('nome')) }}"
+                        style="text-decoration: none; color: inherit; display: inline-flex; align-items: center; gap: 5px;"
+                    >
+                        Nome
+                        {% if sort_map.get('nome') == 'asc' %}
+                            <span>↑</span>
+                        {% elif sort_map.get('nome') == 'desc' %}
+                            <span>↓</span>
+                        {% else %}
+                            <span style="opacity: 0.3;">⇅</span>
+                        {% endif %}
+                    </a>
+                </th>
+                <th>Produtos vinculados</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for category in categories %}
+                <tr>
+                    <td>{{ category.nome }}</td>
+                    <td>{{ category.produtos|length }}</td>
+                    <td>
+                        <div class="table-actions">
+                            <a class="btn btn-secondary btn-sm" href="{{ url_for('categories.detail_category', category_id=category.id) }}">
+                                Ver produtos
+                            </a>
+                            <button 
+                                type="button" 
+                                class="btn btn-sm btn-danger"
+                                onclick='openDeleteModal({{ category.id }}, {{ category.nome|tojson }})'>
+                                Deletar
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="3" style="text-align: center;">Nenhuma categoria cadastrada.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+
+<div id="delete-category-modal" class="modal-overlay">
+    <div class="modal-box">
+        <h3>Deseja mesmo deletar esta categoria?</h3>
+        <p id="delete-category-text">Essa ação apaga a categoria permanentemente.</p>
+        <p id="delete-category-countdown" style="margin-top: 8px; opacity: 0.75;"></p>
+
+        <div class="actions">
+            <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">
+                Não
+            </button>
+
+            <form id="delete-category-form" method="post" action="">
+                <button type="submit" id="confirm-delete-category-btn" class="btn btn-danger">
+                    Sim, deletar categoria.
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+
+function openDeleteModal(categoryId, categoryName) {
+    const modal = document.getElementById('delete-category-modal');
+    const form = document.getElementById('delete-category-form');
+    const text = document.getElementById('delete-category-text');
+    const confirmBtn = document.getElementById('confirm-delete-category-btn');
+
+    form.action = `/categorias/${categoryId}/excluir`;
+    text.textContent = `Produto "${categoryName}". Essa ação não pode ser desfeita.`;
+    confirmBtn.textContent = 'Sim, remover produto';
+
+    modal.classList.add('active');
+}
+
+function closeDeleteModal() {
+    const modal = document.getElementById('delete-category-modal');
+    modal.classList.remove('active');
+}
+
+document.addEventListener('click', function (event) {
+    const modal = document.getElementById('delete-category-modal');
+
+    if (event.target === modal) {
+        closeDeleteModal();
+    }
+});
+
+</script>
+
+{% set endpoint = 'categories.list_categories' %}
+{% set kwargs = {'search': search, 'sort': sort} %}
+{% include 'partials/pagination.html' %}
+{% endblock %}

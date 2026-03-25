@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+
+{% block title %}Clientes{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Clientes</h1>
+        <p>Gerencie seus clientes e consulte o histórico de compras.</p>
+    </div>
+
+    <form method="get" action="{{ url_for('clients.list_clients') }}" class="search-box">
+        <input
+            type="text"
+            name="search"
+            value="{{ search or '' }}"
+            placeholder="Nome ou Telefone do cliente..."
+        >
+        <button type="submit">🔍</button>
+    </form>
+
+    <a class="btn btn-secondary" href="{{ url_for('clients.list_clients') }}">Limpar filtros</a>
+
+    <a href="{{ url_for('clients.create_client') }}" class="btn btn-primary">
+        Novo cliente
+    </a>
+</div>
+    {% if clients %}
+        <div class="table-wrapper">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>
+                            <a href="{{ url_for('clients.list_clients', sort=build_sort_url('nome'), search=search) }}"
+                               style="text-decoration: none; color: inherit; align-items: center; gap: 5px;">
+                                Nome
+                                {% if sort_map.get('nome') == 'asc' %}
+                                    <span>↑</span>
+                                {% elif sort_map.get('nome') == 'desc' %}
+                                    <span>↓</span>
+                                {% else %}
+                                    <span style="opacity: 0.3;">⇅</span>
+                                {% endif %}
+                            </a>
+                        </th>
+
+                        <th>Telefone</th>
+                        <th>CPF</th>
+                        <th>Endereço</th>
+
+                        <th>
+                            <a href="{{ url_for('clients.list_clients', sort=build_sort_url('pagamentos'), search=search) }}"
+                               style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;">
+                                Pagamentos
+                                {% if sort_map.get('pagamentos') == 'asc' %}
+                                    <span>↑</span>
+                                {% elif sort_map.get('pagamentos') == 'desc' %}
+                                    <span>↓</span>
+                                {% else %}
+                                    <span style="opacity: 0.3;">⇅</span>
+                                {% endif %}
+                            </a>
+                        </th>
+
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for client, pending_count in clients %}
+                        <tr>
+                            <td>{{ client.nome }}</td>
+                            <td>{{ formatar_telefone_visual(client.numero) }}</td>
+                            <td>{{ client.cpf or '-' }}</td>
+                            <td>{{ client.endereco or '-' }}</td>
+
+                            <td>
+                                {% if pending_count > 0 %}
+                                    <span class="badge badge-warning">
+                                        Pagamentos pendentes
+                                    </span>
+                                {% else %}
+                                    <span class="badge badge-success">
+                                        Tudo pago
+                                    </span>
+                                {% endif %}
+                            </td>
+
+                            <td class="actions">
+                                <a href="{{ url_for('clients.client_detail', client_id=client.id) }}" class="btn btn-sm">
+                                    Ver compras
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p class="empty-state">Nenhum cliente cadastrado ainda.</p>
+    {% endif %}
+
+{% set endpoint = 'clients.list_clients' %}
+{% set kwargs = {'search': search} %}
+{% include 'partials/pagination.html' %}
+
+{% endblock %}

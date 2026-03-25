@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ 'Editar produto' if product else 'Novo produto' }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h2>{{ 'Editar produto' if product else 'Novo produto' }}</h2>
+        <p class="page-subtitle">Cadastre informações, estoque, categoria e imagem sem perder o fluxo que você já usa.</p>
+    </div>
+</div>
+
+<form
+    method="post"
+    enctype="multipart/form-data"
+    class="form-card"
+    action="{% if product %}{{ url_for('products.edit_product', product_id=product.id) }}{% else %}{{ url_for('products.create_product') }}{% endif %}"
+>
+    <label>
+        Nome
+        <input type="text" name="nome" value="{{ product.nome if product else '' }}" required>
+    </label>
+
+    <label>
+        Descrição
+        <textarea name="descricao" rows="4">{{ product.descricao if product else '' }}</textarea>
+    </label>
+
+    <div class="grid-2">
+
+        <label>
+            Preço de custo
+            <input type="number" name="p_custo" step="0.01" min="0" value="{{ product.p_custo if product else '' }}"required>
+        </label>
+
+        <label>
+            Preço
+            <input type="number" name="preco" step="0.01" min="0" value="{{ product.preco if product else '' }}" required>
+        </label>
+
+        <label>
+            Estoque
+            <input type="number" name="estoque" min="0" value="{{ product.estoque if product else 0 }}" required>
+        </label>
+    </div>
+
+    <label>
+        Categoria
+        <select name="category_id">
+            <option value="">Sem categoria</option>
+            {% for categoria in categorias %}
+                <option value="{{ categoria.id }}" {% if product and product.category_id == categoria.id %}selected{% endif %}>
+                    {{ categoria.nome }}
+                </option>
+            {% endfor %}
+        </select>
+    </label>
+
+    <label>
+        {{ 'Carregar nova imagem para o produto' if product else 'Imagem do produto' }}
+        <input type="file" name="imagem" accept="image/*">
+    </label>
+
+    {% if product and product.imagem %}
+    <div class="current-image">
+        <p>Imagem atual</p>
+        <img
+            src="{{ url_for('main.media_produtos', filename=product.imagem) }}"
+            alt="{{ product.nome }}"
+            style="max-width: 360px; border-radius: 12px;"
+        >
+    </div>
+    {% endif %}
+
+    <label class="checkbox">
+        <input type="checkbox" name="ativo" {% if product and product.ativo %}checked{% elif not product %}checked{% endif %}>
+        Produto ativo no catálogo
+    </label>
+
+    <div class="actions">
+        <button class="btn" type="submit">Salvar</button>
+        <a class="btn btn-secondary" href="{{ url_for('products.list_products') }}">Cancelar</a>
+    </div>
+</form>
+{% endblock %}

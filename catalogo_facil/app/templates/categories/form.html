@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block title %}Nova categoria{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h2>Nova categoria</h2>
+        <p class="page-subtitle">Crie grupos para organizar melhor os produtos dentro do sistema e do catálogo.</p>
+    </div>
+</div>
+
+<form method="post" class="form-card">
+    <label>
+        Nome da categoria
+        <input type="text" name="nome" required>
+    </label>
+
+    <div class="actions">
+        <button class="btn" type="submit">Salvar categoria</button>
+        <a class="btn btn-secondary" href="{{ url_for('categories.list_categories') }}">Cancelar</a>
+    </div>
+</form>
+{% endblock %}

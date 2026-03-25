@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+
+{% block title %}Catálogos{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2>Catálogos</h2>
+
+    <div class="actions">
+        <a class="btn" href="{{ url_for('catalogs.create_catalog') }}">Novo catálogo</a>
+    </div>
+</div>
+
+{% if catalogs %}
+<div class="table-wrapper">
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nome</th>
+                <th>Itens</th>
+                <th>Preço</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for catalog in catalogs %}
+            <tr>
+                <td>{{ catalog.id }}</td>
+                <td>{{ catalog.nome }}</td>
+                <td>{{ catalog.items|length }}</td>
+                <td>{{ 'Sim' if catalog.mostrar_preco else 'Não' }}</td>
+                <td>
+                    <div class="table-actions">
+                        <a class="btn btn-sm btn-secondary" href="{{ url_for('catalogs.printable_catalog', catalog_id=catalog.id) }}">Ver</a>
+                        <a class="btn btn-sm btn-secondary" href="{{ url_for('catalogs.edit_catalog', catalog_id=catalog.id) }}">Editar</a>
+                        <a class="btn btn-sm btn-secondary" href="{{ url_for('catalogs.export_catalog_html', catalog_id=catalog.id) }}">Baixar ⭳</a>
+                        <button 
+                            type="button" 
+                            class="btn btn-sm btn-danger"
+                            onclick='openDeleteModal({{ catalog.id }}, {{ catalog.nome|tojson }})'>
+                            Deletar
+                        </button>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</div>
+
+<div> 
+    <p>
+        Catálogos de intereção são funcionais apenas em interpretes de HTML,CSS e JavaScript (Navegadores).
+    </p>
+</div>
+
+{% else %}
+<div class="empty-state">
+    <p>Nenhum catálogo cadastrado ainda.</p>
+    <a class="btn" href="{{ url_for('catalogs.create_catalog') }}">Criar primeiro catálogo</a>
+</div>
+{% endif %}
+
+<div id="delete-catalog-modal" class="modal-overlay">
+    <div class="modal-box">
+        <h3>Deseja mesmo deletar este catálogo?</h3>
+        <p id="delete-catalog-text">Essa ação irá remover o catálogo permanentemente.</p>
+        <p id="delete-catalog-countdown" style="margin-top: 8px; opacity: 0.75;"></p>
+
+        <div class="actions">
+            <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">
+                Não
+            </button>
+
+            <form id="delete-catalog-form" method="post" action="">
+                <button type="submit" id="confirm-delete-catalog-btn" class="btn btn-danger" disabled>
+                    Aguarde 3s
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+
+let deleteCatalogCountdownInterval = null;
+
+function openDeleteModal(catalogId, catalogName) {
+    const modal = document.getElementById('delete-catalog-modal');
+    const form = document.getElementById('delete-catalog-form');
+    const text = document.getElementById('delete-catalog-text');
+    const countdownText = document.getElementById('delete-catalog-countdown');
+    const confirmBtn = document.getElementById('confirm-delete-catalog-btn');
+
+    form.action = `/catalogos/${catalogId}/excluir`;
+    text.textContent = `Catálogo "${catalogName}". Essa ação não pode ser desfeita.`;
+
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = 'Aguarde 3s';
+    countdownText.textContent = 'Você poderá confirmar em 3 segundos.';
+
+    let seconds = 3;
+
+    if (deleteCatalogCountdownInterval) {
+        clearInterval(deleteCatalogCountdownInterval);
+    }
+
+    deleteCatalogCountdownInterval = setInterval(() => {
+        seconds--;
+
+        if (seconds > 0) {
+            confirmBtn.textContent = `Aguarde ${seconds}s`;
+            countdownText.textContent = `Você poderá confirmar em ${seconds} segundo${seconds > 1 ? 's' : ''}.`;
+        } else {
+            clearInterval(deleteCatalogCountdownInterval);
+            deleteCatalogCountdownInterval = null;
+            confirmBtn.disabled = false;
+            confirmBtn.textContent = 'Sim, remover catálogo';
+            countdownText.textContent = '';
+        }
+    }, 1000);
+
+    modal.classList.add('active');
+}
+
+function closeDeleteModal() {
+    const modal = document.getElementById('delete-catalog-modal');
+    const confirmBtn = document.getElementById('confirm-delete-catalog-btn');
+    const countdownText = document.getElementById('delete-catalog-countdown');
+
+    if (deleteCatalogCountdownInterval) {
+        clearInterval(deleteCatalogCountdownInterval);
+        deleteCatalogCountdownInterval = null;
+    }
+
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = 'Aguarde 3s';
+    countdownText.textContent = '';
+
+    modal.classList.remove('active');
+}
+
+document.addEventListener('click', function (event) {
+    const modal = document.getElementById('delete-catalog-modal');
+
+    if (event.target === modal) {
+        closeDeleteModal();
+    }
+});
+
+</script>
+
+
+{% endblock %}

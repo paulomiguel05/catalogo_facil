@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Catálogo.Fácil{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="app-background" aria-hidden="true">
+        <span class="bg-grid"></span>
+        <span class="bg-stars"></span>
+        <span class="bg-orb orb-1"></span>
+        <span class="bg-orb orb-2"></span>
+        <span class="bg-orb orb-3"></span>
+    </div>
+
+    <header class="topbar">
+        <div class="container topbar-inner">
+            <a class="brand" href="{{ url_for('main.home') }}">
+                <span >
+                    <img src="{{ url_for('static', filename='img/catalogo-facil-hero.png') }}" alt="Ícone do Catalogo.Fácil">
+                </span>
+                <span class="brand-text">
+                    <strong>Catálogo Fácil</strong>
+                </span>
+            </a>
+
+            <nav class="topnav">
+                <a href="{{ url_for('products.list_products') }}">Estoque</a>
+                <a href="{{ url_for('categories.list_categories') }}">Categorias</a>
+                <a href="{{ url_for('sales.list_sales') }}">Vendas</a>
+                <a href="{{ url_for('clients.list_clients') }}">Clientes</a>
+                <a href="{{ url_for('catalogs.list_catalogs') }}">Catálogos</a>
+                <a href="{{ url_for('shops.manage_shop') }}">Loja</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container site-main">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-list">
+                    {% for category, message in messages %}
+                        <div class="flash {{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

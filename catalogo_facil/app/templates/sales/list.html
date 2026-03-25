@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+
+{% block title %}Vendas{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Vendas</h1>
+    <div class="search-box">
+        <form method="get" action="{{ url_for('sales.list_sales') }}">
+            <input type="text" name="search" placeholder="Cliente, telefone ou status..." value="{{ search or '' }}">
+            <input type="hidden" name="sort" value="{{ sort or '' }}">
+            <button type="submit">🔍</button>
+        </form>
+    </div>
+
+    <div class="actions">
+        <a class="btn btn-secondary" href="{{ url_for('sales.list_sales') }}">Limpar filtros</a>
+        <a class="btn btn-secondary" href="{{ url_for('sales.consult_sales') }}">Consultar por período</a>
+        <a class="btn" href="{{ url_for('sales.create_sale') }}">Nova venda</a>
+    </div>
+</div>
+
+<p>Gerencie suas vendas, consulte detalhes e acompanhe o status de cada venda.</p>
+
+<div class="table-wrapper">
+    <table>
+        <thead>
+            <tr>
+                <th>
+                    <a href="{{ url_for('sales.list_sales', search=search, sort=build_sort_url('nome_cliente')) }}"
+                       style="text-decoration: none; color: inherit; gap: 5px;">
+                        Cliente
+                        {% if sort_map.get('nome_cliente') == 'asc' %}
+                            <span>↑</span>
+                        {% elif sort_map.get('nome_cliente') == 'desc' %}
+                            <span>↓</span>
+                        {% else %}
+                            <span style="opacity: 0.3;">⇅</span>
+                        {% endif %}
+                    </a>
+                </th>
+
+                <th>
+                    <a href="{{ url_for('sales.list_sales', search=search, sort=build_sort_url('data')) }}"
+                       style="text-decoration: none; color: inherit; gap: 5px;">
+                        Data
+                        {% if sort_map.get('data') == 'asc' %}
+                            <span>↑</span>
+                        {% elif sort_map.get('data') == 'desc' %}
+                            <span>↓</span>
+                        {% else %}
+                            <span style="opacity: 0.3;">⇅</span>
+                        {% endif %}
+                    </a>
+                </th>
+
+                <th>
+                    <a href="{{ url_for('sales.list_sales', sort=build_sort_url('lucro'), search=search) }}"
+                        style="text-decoration: none; color: inherit; gap: 5px;">
+                        Lucro
+                        {% if sort_map.get('lucro') == 'asc' %}
+                            <span>↑</span>
+                        {% elif sort_map.get('lucro') == 'desc' %}
+                            <span>↓</span>
+                        {% else %}
+                            <span style="opacity: 0.3;">⇅</span>
+                        {% endif %}
+                    </a>
+                </th>
+
+                <th>
+                    <a href="{{ url_for('sales.list_sales', sort=build_sort_url('total'), search=search) }}"
+                       style="text-decoration: none; color: inherit; gap: 5px;">
+                        Total
+                        {% if sort_map.get('total') == 'asc' %}
+                            <span>↑</span>
+                        {% elif sort_map.get('total') == 'desc' %}
+                            <span>↓</span>
+                        {% else %}
+                            <span style="opacity: 0.3;">⇅</span>
+                        {% endif %}
+                    </a>
+                </th>
+
+                <th>
+                    <a href="{{ url_for('sales.list_sales', search=search, sort=build_sort_url('status')) }}"
+                        style="text-decoration: none; color: inherit; gap: 5px;">
+                        Status
+                        {% if sort_map.get('status') == 'asc' %}
+                            <span>↑</span>
+                        {% elif sort_map.get('status') == 'desc' %}
+                            <span>↓</span>
+                        {% else %}
+                            <span style="opacity: 0.3;">⇅</span>
+                        {% endif %}
+                    </a>
+                </th>
+
+                <th>Ações</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for sale in sales %}
+                <tr>
+                    <td>{{ sale.client.nome if sale.client else '-' }}</td>
+                    <td>{{ sale.data.strftime('%d/%m/%Y %H:%M') }}</td>
+                    <td>R$ {{ '%.2f'|format(sale.lucro)|replace('.', ',') }}</td>
+                    <td>R$ {{ '%.2f'|format(sale.total)|replace('.', ',') }}</td>
+                    <td>
+                        {% if sale.status == 'pago' %}
+                            <span class="badge badge-success">Pago</span>
+                        {% else %}
+                            <span class="badge badge-warning">Pendente</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="table-actions">
+                            <a class="btn btn-secondary btn-sm" href="{{ url_for('sales.detail_sale', sale_id=sale.id) }}">
+                                Detalhes
+                            </a>
+                            {% if sale.status != 'pago' %}
+                                    <form method="post" action="{{ url_for('sales.mark_sale_as_paid', sale_id=sale.id) }}">
+                                        <button type="submit" class="btn btn-sm">
+                                            Marcar pago
+                                        </button>
+                                    </form>
+                                    <a class="btn btn-success btn-sm" target="_blank" href="{{ url_for('sales.send_whatsapp_charge', sale_id=sale.id) }}">
+                                        Cobrar
+                                    </a>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="5" style="text-align: center;">Nenhuma venda registrada.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% set endpoint = 'sales.list_sales' %}
+{% set kwargs = {'search': search, 'sort': sort} %}
+{% include 'partials/pagination.html' %}
+
+{% endblock %}

@@ -1,0 +1,765 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {% if catalog %}Editar catálogo{% else %}Novo catálogo{% endif %}
+{% endblock %}
+
+{% block content %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/core/catalog.css') }}">
+
+<div class="page-header">
+    <div>
+        <h2>{% if catalog %}Editar catálogo{% else %}Novo catálogo{% endif %}</h2>
+        <p class="page-subtitle">Defina o conteúdo, a aparência e os produtos do catálogo sem perder nenhum recurso que você já criou.</p>
+    </div>
+</div>
+
+<form method="post" enctype="multipart/form-data" class="form-card">
+    <section>
+        <div class="page-header second-header">
+            <div>
+                <h3>Informações</h3>
+            </div>
+        </div>
+
+        <div class="grid-2">
+            <label>
+                Nome do catálogo
+                <input 
+                type="text" 
+                name="nome" 
+                value="{{ catalog.nome if catalog else '' }}" 
+                placeholder="Nome para o catálogo"
+                required>
+            </label>
+
+            <label>
+                Mostrar preço
+                <select name="mostrar_preco" id="mostrar_preco">
+                    <option value="1" {% if not catalog or catalog.mostrar_preco %}selected{% endif %}>Sim</option>
+                    <option value="0" {% if catalog and not catalog.mostrar_preco %}selected{% endif %}>Não</option>
+                </select>
+            </label>
+        </div>
+
+        <div class="grid-2">
+            <label>
+                Título do cabeçalho
+                <input
+                    type="text"
+                    name="cabecalho_titulo"
+                    id="cabecalho_titulo"
+                    value="{{ catalog.cabecalho_titulo if catalog else '' }}"
+                    placeholder="Nome da loja"
+                >
+            </label>
+
+            <label>
+                Subtítulo do cabeçalho
+                <input
+                    type="text"
+                    name="cabecalho_subtitulo"
+                    id="cabecalho_subtitulo"
+                    value="{{ catalog.cabecalho_subtitulo if catalog else '' }}"
+                    placeholder=" Sobre oque é o catálogo... "
+                >
+            </label>
+        </div>
+
+        <label>
+            Descrição do catálogo
+            <textarea name="descricao" rows="4" placeholder="Descrição opcional">{{ catalog.descricao if catalog else '' }}</textarea>
+        </label>
+
+        </br>
+
+        <div class="info-box">
+            <strong>Informações da loja</strong>
+            <p>
+                WhatsApp, Instagram e Facebook não são configurados neste formulário.
+                Esses dados devem ser cadastrados separadamente em <strong>Dados da Loja</strong>
+                e serão exibidos no catálogo público.
+            </p>
+        </div>
+    </section>
+
+    <hr>
+
+    <section>
+        <div class="page-header second-header">
+            <div>
+                <h3>Logo do cabeçalho</h3>
+                <p class="page-subtitle">Envie uma logo com transparência (png) para um resultado mais bonito no catálogo público. O tamanho de exibição é de 64px por 64px.</p>
+            </div>
+        </div>
+
+        {% if catalog and catalog.logo %}
+            <div class="actions" style="margin-bottom: 14px;">
+                <img class="logo-preview" src="{{ url_for('main.media_catalogos', filename=catalog.logo) }}" alt="Logo atual">
+            </div>
+
+            <label class="checkbox">
+                <input type="checkbox" name="remover_logo" value="1">
+                Remover logo atual
+            </label>
+        {% endif %}
+
+        <label>
+            Enviar nova logo
+            <input type="file" name="logo" accept=".png,.jpg,.jpeg,.webp">
+        </label>
+    </section>
+
+    <hr>
+
+    <section>
+        <div class="page-header second-header">
+            <div>
+                <h3>Selecionar categorias</h3>
+                <p class="page-subtitle">Os produtos das categorias marcadas serão incluídos automaticamente no catálogo.</p>
+            </div>
+        </div>
+
+        <div class="checkbox-grid">
+            {% for category in categories %}
+                <label class="check-card">
+                    <input
+                        type="checkbox"
+                        name="category_id[]"
+                        value="{{ category.id }}"
+                        {% if category.id in selected_category_ids %}checked{% endif %}
+                    >
+                    <span>{{ category.nome }}</span>
+                </label>
+            {% endfor %}
+        </div>
+    </section>
+
+    <hr>
+
+    <section>
+        <div class="page-header second-header">
+            <div>
+                <h3>Adicionar produtos avulsos</h3>
+                <p class="page-subtitle">Inclua produtos específicos sem depender apenas da categoria.</p>
+            </div>
+        </div>
+
+        <div class="product-picker">
+            <div class="product-search-wrapper">
+                <input
+                    type="text"
+                    id="product_search"
+                    placeholder="Digite o nome do produto para adicionar"
+                    autocomplete="off"
+                >
+                <div id="product_suggestions" class="suggestions-box"></div>
+            </div>
+        </div>
+
+        <div>
+            <h4 style="margin-top: 18px; margin-bottom: 12px;">Produtos avulsos selecionados</h4>
+            <div id="selected-products">
+                {% for product in selected_products %}
+                    <div class="selected-product-item" data-id="{{ product.id }}">
+                        <span>{{ product.nome }}</span>
+                        <input type="hidden" name="product_id[]" value="{{ product.id }}">
+                        <button type="button" class="btn btn-secondary btn-sm remove-selected-product">Remover</button>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <hr>
+
+    <section>
+        <div class="page-header second-header">
+            <div>
+                <h3>Aparência do catálogo</h3>
+                <p class="page-subtitle">Agora o form cobre todas as cores do catálogo público novo, incluindo modal, carrinho e destaques.</p>
+            </div>
+        </div>
+
+        <div class="appearance-grid">
+            <label class="color-field">
+                <span>Cor de fundo</span>
+                <small>Fundo geral da página pública.</small>
+                <div class="color-input-row">
+                    <input type="color" name="cor_fundo" data-sync-text="cor_fundo_text" value="{{ catalog.cor_fundo if catalog and catalog.cor_fundo else '#f5f5f7' }}">
+                    <input class="color-text" type="text" id="cor_fundo_text" value="{{ catalog.cor_fundo if catalog and catalog.cor_fundo else '#f5f5f7' }}">
+                </div>
+            </label>
+
+            <label class="color-field">
+                <span>Cor da superfície</span>
+                <small>Cards, modal e carrinho.</small>
+                <div class="color-input-row">
+                    <input type="color" name="cor_superficie" data-sync-text="cor_superficie_text" value="{{ catalog.cor_superficie if catalog and catalog.cor_superficie else '#ffffff' }}">
+                    <input class="color-text" type="text" id="cor_superficie_text" value="{{ catalog.cor_superficie if catalog and catalog.cor_superficie else '#ffffff' }}">
+                </div>
+            </label>
+
+            <label class="color-field">
+                <span>Cor da superfície secundária</span>
+                <small>Áreas suaves, fundos internos e destaques leves.</small>
+                <div class="color-input-row">
+                    <input type="color" name="cor_superficie_secundaria" data-sync-text="cor_superficie_secundaria_text" value="{{ catalog.cor_superficie_secundaria if catalog and catalog.cor_superficie_secundaria else '#f8fafc' }}">
+                    <input class="color-text" type="text" id="cor_superficie_secundaria_text" value="{{ catalog.cor_superficie_secundaria if catalog and catalog.cor_superficie_secundaria else '#f8fafc' }}">
+                </div>
+            </label>
+
+            <label class="color-field">
+                <span>Cor do texto principal</span>
+                <small>Nome dos produtos e textos fortes.</small>
+                <div class="color-input-row">
+                    <input type="color" name="cor_texto" data-sync-text="cor_texto_text" value="{{ catalog.cor_texto if catalog and catalog.cor_texto else '#1f2937' }}">
+                    <input class="color-text" type="text" id="cor_texto_text" value="{{ catalog.cor_texto if catalog and catalog.cor_texto else '#1f2937' }}">
+                </div>
+            </label>
+
+            <label class="color-field">
+                <span>Cor do texto secundário</span>
+                <small>Descrições, subtítulos e estoque discreto.</small>
+                <div class="color-input-row">
+                    <input type="color" name="cor_texto_secundario" data-sync-text="cor_texto_secundario_text" value="{{ catalog.cor_texto_secundario if catalog and catalog.cor_texto_secundario else '#6b7280' }}">
+                    <input class="color-text" type="text" id="cor_texto_secundario_text" value="{{ catalog.cor_texto_secundario if catalog and catalog.cor_texto_secundario else '#6b7280' }}">
+                </div>
+            </label>
+
+            <label class="color-field">
+                <span>Cor da borda</span>
+                <small>Bordas dos cards, chips e drawer.</small>
+                <div class="color-input-row">
+                    <input type="color" name="cor_borda" data-sync-text="cor_borda_text" value="{{ catalog.cor_borda if catalog and catalog.cor_borda else '#e5e7eb' }}">
+                    <input class="color-text" type="text" id="cor_borda_text" value="{{ catalog.cor_borda if catalog and catalog.cor_borda else '#e5e7eb' }}">
+                </div>
+            </label>
+
+            <label class="color-field">
+                <span>Cor do cabeçalho</span>
+                <small>Base do topo do catálogo.</small>
+                <div class="color-input-row">
+                    <input type="color" name="cor_cabecalho" data-sync-text="cor_cabecalho_text" value="{{ catalog.cor_cabecalho if catalog and catalog.cor_cabecalho else '#111827' }}">
+                    <input class="color-text" type="text" id="cor_cabecalho_text" value="{{ catalog.cor_cabecalho if catalog and catalog.cor_cabecalho else '#111827' }}">
+                </div>
+            </label>
+
+            <label class="color-field">
+                <span>Detalhe do cabeçalho</span>
+                <small>Gradiente e brilho do topo.</small>
+                <div class="color-input-row">
+                    <input type="color" name="cor_cabecalho_detalhe" data-sync-text="cor_cabecalho_detalhe_text" value="{{ catalog.cor_cabecalho_detalhe if catalog and catalog.cor_cabecalho_detalhe else (catalog.cor_botao_primario if catalog and catalog.cor_botao_primario else '#7c3aed') }}">
+                    <input class="color-text" type="text" id="cor_cabecalho_detalhe_text" value="{{ catalog.cor_cabecalho_detalhe if catalog and catalog.cor_cabecalho_detalhe else (catalog.cor_botao_primario if catalog and catalog.cor_botao_primario else '#7c3aed') }}">
+                </div>
+            </label>
+
+            <label class="color-field">
+                <span>Texto do cabeçalho</span>
+                <small>Cor do título e subtítulo no topo.</small>
+                <div class="color-input-row">
+                    <input type="color" name="cor_texto_cabecalho" data-sync-text="cor_texto_cabecalho_text" value="{{ catalog.cor_texto_cabecalho if catalog and catalog.cor_texto_cabecalho else '#ffffff' }}">
+                    <input class="color-text" type="text" id="cor_texto_cabecalho_text" value="{{ catalog.cor_texto_cabecalho if catalog and catalog.cor_texto_cabecalho else '#ffffff' }}">
+                </div>
+            </label>
+
+            <label class="color-field">
+                <span>Botão principal</span>
+                <small>Botão “Ver detalhes” e ações principais.</small>
+                <div class="color-input-row">
+                    <input type="color" name="cor_botao_primario" data-sync-text="cor_botao_primario_text" value="{{ catalog.cor_botao_primario if catalog and catalog.cor_botao_primario else '#7c3aed' }}">
+                    <input class="color-text" type="text" id="cor_botao_primario_text" value="{{ catalog.cor_botao_primario if catalog and catalog.cor_botao_primario else '#7c3aed' }}">
+                </div>
+            </label>
+
+            <label class="color-field">
+                <span>Hover do botão principal</span>
+                <small>Cor ao passar o mouse no botão principal.</small>
+                <div class="color-input-row">
+                    <input type="color" name="cor_botao_primario_hover" data-sync-text="cor_botao_primario_hover_text" value="{{ catalog.cor_botao_primario_hover if catalog and catalog.cor_botao_primario_hover else '#6d28d9' }}">
+                    <input class="color-text" type="text" id="cor_botao_primario_hover_text" value="{{ catalog.cor_botao_primario_hover if catalog and catalog.cor_botao_primario_hover else '#6d28d9' }}">
+                </div>
+            </label>
+
+            <label class="color-field">
+                <span>Botão secundário</span>
+                <small>Preço destacado, elementos alternativos e textos fortes.</small>
+                <div class="color-input-row">
+                    <input type="color" name="cor_botao_secundario" data-sync-text="cor_botao_secundario_text" value="{{ catalog.cor_botao_secundario if catalog and catalog.cor_botao_secundario else '#374151' }}">
+                    <input class="color-text" type="text" id="cor_botao_secundario_text" value="{{ catalog.cor_botao_secundario if catalog and catalog.cor_botao_secundario else '#374151' }}">
+                </div>
+            </label>
+
+            <label class="color-field">
+                <span>Hover do botão secundário</span>
+                <small>Hover de elementos secundários.</small>
+                <div class="color-input-row">
+                    <input type="color" name="cor_botao_secundario_hover" data-sync-text="cor_botao_secundario_hover_text" value="{{ catalog.cor_botao_secundario_hover if catalog and catalog.cor_botao_secundario_hover else '#1f2937' }}">
+                    <input class="color-text" type="text" id="cor_botao_secundario_hover_text" value="{{ catalog.cor_botao_secundario_hover if catalog and catalog.cor_botao_secundario_hover else '#1f2937' }}">
+                </div>
+            </label>
+
+            <label class="color-field">
+                <span>Cor do preço</span>
+                <small>Preço em cards, modal e carrinho.</small>
+                <div class="color-input-row">
+                    <input type="color" name="cor_preco" data-sync-text="cor_preco_text" value="{{ catalog.cor_preco if catalog and catalog.cor_preco else '#111827' }}">
+                    <input class="color-text" type="text" id="cor_preco_text" value="{{ catalog.cor_preco if catalog and catalog.cor_preco else '#111827' }}">
+                </div>
+            </label>
+
+            <label class="color-field">
+                <span>Cor de destaque</span>
+                <small>Links ativos, foco visual e detalhes de interface.</small>
+                <div class="color-input-row">
+                    <input type="color" name="cor_destaque" data-sync-text="cor_destaque_text" value="{{ catalog.cor_destaque if catalog and catalog.cor_destaque else '#7c3aed' }}">
+                    <input class="color-text" type="text" id="cor_destaque_text" value="{{ catalog.cor_destaque if catalog and catalog.cor_destaque else '#7c3aed' }}">
+                </div>
+            </label>
+        </div>
+
+        <div class="icon-choice-wrap">
+            <div class="icon-choice-title">Cor do ícone do carrinho</div>
+
+            <div class="icon-choice-options">
+                <label class="icon-choice-card">
+                    <input
+                        type="radio"
+                        name="icone_carrinho_cor"
+                        value="branco"
+                        {% if not catalog or not catalog.icone_carrinho_cor or catalog.icone_carrinho_cor == 'branco' %}checked{% endif %}
+                    >
+                    <img
+                        class="icon-choice-preview"
+                        src="{{ url_for('static', filename='img/carrinho-branco.png') }}"
+                        alt="Carrinho branco"
+                    >
+                    <span>Branco</span>
+                </label>
+
+                <label class="icon-choice-card">
+                    <input
+                        type="radio"
+                        name="icone_carrinho_cor"
+                        value="preto"
+                        {% if catalog and catalog.icone_carrinho_cor == 'preto' %}checked{% endif %}
+                    >
+                    <img
+                        class="icon-choice-preview"
+                        src="{{ url_for('static', filename='img/carrinho-preto.png') }}"
+                        alt="Carrinho preto"
+                    >
+                    <span>Preto</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="colors-help-box">
+            <p>
+                Dica: se quiser um visual equilibrado, use a mesma família de cor em
+                <strong>detalhe do cabeçalho</strong>, <strong>botão principal</strong> e <strong>destaque</strong>.
+            </p>
+        </div>
+
+        <div class="appearance-preview" id="appearance_preview_area">
+            <div class="catalog-preview-demo" id="catalog_preview_demo">
+                <div class="catalog-preview-demo-header" id="preview_header">
+                    <div class="catalog-preview-demo-header-top">
+                        <div class="catalog-preview-demo-logo"></div>
+
+                        <div class="catalog-preview-demo-headings">
+                            <h3 class="catalog-preview-demo-title" id="preview_title">
+                                {{ catalog.cabecalho_titulo if catalog and catalog.cabecalho_titulo else (catalog.nome if catalog else 'Catálogo de produtos') }}
+                            </h3>
+                            <p class="catalog-preview-demo-subtitle" id="preview_subtitle">
+                                {{ catalog.cabecalho_subtitulo if catalog and catalog.cabecalho_subtitulo else 'Confira nossos produtos e novidades' }}
+                            </p>
+
+                            <div class="catalog-preview-demo-actions">
+                                <div class="catalog-preview-demo-icon"></div>
+                                <div class="catalog-preview-demo-icon"></div>
+                                <div class="catalog-preview-demo-icon"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="button" class="preview-cart-demo" id="preview_cart_btn">
+                        <img
+                            id="preview_cart_icon"
+                            src="{{ url_for('static', filename='img/carrinho-branco.png') }}"
+                            alt="Carrinho"
+                        >
+                        <span class="preview-cart-count">2</span>
+                    </button>
+                </div>
+
+                <div class="catalog-preview-demo-body" id="preview_body">
+                    <div class="catalog-preview-demo-nav">
+                        <div class="catalog-preview-demo-chip" id="preview_chip_1">Categoria 1</div>
+                        <div class="catalog-preview-demo-chip" id="preview_chip_2">Categoria 2</div>
+                    </div>
+
+                    <div class="catalog-preview-demo-grid">
+                        <div class="catalog-preview-demo-card" id="preview_card">
+                            <div class="catalog-preview-demo-image-wrap">
+                                <div class="catalog-preview-demo-image" id="preview_image"></div>
+                                <div class="catalog-preview-demo-stock-badge" id="preview_stock_badge">12 em estoque</div>
+                            </div>
+
+                            <div class="catalog-preview-demo-card-body">
+                                <h5 id="preview_product_title">Produto exemplo</h5>
+                                <p class="catalog-preview-demo-desc" id="preview_product_desc">
+                                    Uma pequena prévia para te mostrar como as cores ficam combinadas no catálogo.
+                                </p>
+
+                                <div class="catalog-preview-demo-row">
+                                    <div class="catalog-preview-demo-price" id="preview_price">R$ 129,90</div>
+                                </div>
+
+                                <button type="button" class="catalog-preview-demo-btn" id="preview_btn">
+                                    Ver detalhes
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="button" class="catalog-preview-demo-floating-cart" id="preview_floating_cart">
+                        <img
+                            class="preview-floating-cart-icon"
+                            id="preview_floating_cart_icon"
+                            src="{{ url_for('static', filename='img/carrinho-branco.png') }}"
+                            alt="Carrinho"
+                        >
+                        <span class="preview-floating-cart-badge">2</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+                                
+    </section>
+
+    <div class="actions">
+        <button type="submit" class="btn">{% if catalog %}Salvar alterações{% else %}Criar catálogo{% endif %}</button>
+        <a class="btn btn-secondary" href="{{ url_for('catalogs.list_catalogs') }}">Cancelar</a>
+    </div>
+</form>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const searchInput = document.getElementById('product_search');
+    const suggestionsBox = document.getElementById('product_suggestions');
+    const selectedProducts = document.getElementById('selected-products');
+    const PRODUCT_SEARCH_URL = "{{ url_for('products.search_products') }}";
+
+    function hideSuggestions() {
+        suggestionsBox.innerHTML = '';
+        suggestionsBox.style.display = 'none';
+    }
+
+    function getSelectedIds() {
+        return Array.from(
+            selectedProducts.querySelectorAll('input[name="product_id[]"]')
+        ).map(input => input.value);
+    }
+
+    function addSelectedProduct(product) {
+        const selectedIds = getSelectedIds();
+
+        if (selectedIds.includes(String(product.id))) {
+            return;
+        }
+
+        const item = document.createElement('div');
+        item.className = 'selected-product-item';
+        item.dataset.id = product.id;
+
+        item.innerHTML = `
+            <span>${product.nome}</span>
+            <input type="hidden" name="product_id[]" value="${product.id}">
+            <button type="button" class="btn btn-secondary btn-sm remove-selected-product">Remover</button>
+        `;
+
+        selectedProducts.appendChild(item);
+    }
+
+    if (searchInput && suggestionsBox && selectedProducts) {
+        searchInput.addEventListener('input', async function () {
+            const q = searchInput.value.trim();
+
+            if (q.length < 2) {
+                hideSuggestions();
+                return;
+            }
+
+            try {
+                const response = await fetch(`${PRODUCT_SEARCH_URL}?q=${encodeURIComponent(q)}`);
+                if (!response.ok) throw new Error('Erro ao buscar produtos');
+
+                const products = await response.json();
+                const selectedIds = getSelectedIds();
+
+                const filtered = products.filter(product => !selectedIds.includes(String(product.id)));
+
+                if (!filtered.length) {
+                    suggestionsBox.innerHTML = '<div class="suggestion-item empty">Nenhum produto encontrado</div>';
+                    suggestionsBox.style.display = 'block';
+                    return;
+                }
+
+                suggestionsBox.innerHTML = filtered.map(product => `
+                    <div
+                        class="suggestion-item"
+                        data-id="${product.id}"
+                        data-name="${product.nome}"
+                    >
+                        <strong>${product.nome}</strong>
+                        <small>
+                            R$ ${Number(product.preco).toFixed(2)}
+                            ${product.categoria ? ' • ' + product.categoria : ''}
+                        </small>
+                    </div>
+                `).join('');
+
+                suggestionsBox.style.display = 'block';
+            } catch (error) {
+                hideSuggestions();
+            }
+        });
+
+        suggestionsBox.addEventListener('click', function (event) {
+            const item = event.target.closest('.suggestion-item');
+
+            if (!item || item.classList.contains('empty')) {
+                return;
+            }
+
+            addSelectedProduct({
+                id: item.dataset.id,
+                nome: item.dataset.name
+            });
+
+            searchInput.value = '';
+            hideSuggestions();
+        });
+
+        selectedProducts.addEventListener('click', function (event) {
+            if (event.target.classList.contains('remove-selected-product')) {
+                event.target.closest('.selected-product-item').remove();
+            }
+        });
+
+        document.addEventListener('click', function (event) {
+            if (!event.target.closest('.product-search-wrapper')) {
+                hideSuggestions();
+            }
+        });
+    }
+
+    const colorInputs = Array.from(document.querySelectorAll('input[type="color"][data-sync-text]'));
+    const nomeCatalogoInput = document.querySelector('input[name="nome"]');
+    const cabecalhoTituloInput = document.getElementById('cabecalho_titulo');
+    const cabecalhoSubtituloInput = document.getElementById('cabecalho_subtitulo');
+    const mostrarPrecoSelect = document.getElementById('mostrar_preco');
+
+    const previewHeader = document.getElementById('preview_header');
+    const previewBody = document.getElementById('preview_body');
+    const previewCard = document.getElementById('preview_card');
+    const previewImage = document.getElementById('preview_image');
+    const previewTitle = document.getElementById('preview_title');
+    const previewSubtitle = document.getElementById('preview_subtitle');
+    const previewProductTitle = document.getElementById('preview_product_title');
+    const previewProductDesc = document.getElementById('preview_product_desc');
+    const previewPrice = document.getElementById('preview_price');
+    const previewStock = document.getElementById('preview_stock_badge');
+    const previewBtn = document.getElementById('preview_btn');
+    const previewChip1 = document.getElementById('preview_chip_1');
+    const previewChip2 = document.getElementById('preview_chip_2');
+    const previewCartBtn = document.getElementById('preview_cart_btn');
+    const previewCartIcon = document.getElementById('preview_cart_icon');
+    const previewFloatingCart = document.getElementById('preview_floating_cart');
+    const previewFloatingCartIcon = document.getElementById('preview_floating_cart_icon');
+    const cartIconInputs = Array.from(document.querySelectorAll('input[name="icone_carrinho_cor"]'));
+
+    const CART_ICON_WHITE = "{{ url_for('static', filename='img/carrinho-branco.png') }}";
+    const CART_ICON_BLACK = "{{ url_for('static', filename='img/carrinho-preto.png') }}";
+
+    function getInputValue(name, fallback) {
+        const input = document.querySelector(`[name="${name}"]`);
+        return input && input.value ? input.value : fallback;
+    }
+
+    function setTextIfEmpty(input, fallback) {
+        if (!input) return fallback;
+        return input.value.trim() || fallback;
+    }
+
+    function isValidHex(value) {
+        return /^#([0-9A-Fa-f]{6})$/.test(value);
+    }
+
+    function syncTextWithColor(colorInput) {
+        const textId = colorInput.dataset.syncText;
+        const textInput = document.getElementById(textId);
+        if (textInput) {
+            textInput.value = colorInput.value;
+        }
+    }
+
+    function syncColorWithText(textInput) {
+        const colorInput = document.querySelector(`input[data-sync-text="${textInput.id}"]`);
+        if (colorInput && isValidHex(textInput.value.trim())) {
+            colorInput.value = textInput.value.trim();
+        }
+    }
+
+    function applyPrimaryStyle(element, baseColor, hoverColor) {
+        if (!element) return;
+
+        element.style.background = baseColor;
+        element.style.backgroundImage = 'none';
+        element.style.color = '#ffffff';
+        element.style.borderColor = 'transparent';
+
+        element.onmouseenter = function () {
+            element.style.background = hoverColor;
+            element.style.backgroundImage = 'none';
+        };
+
+        element.onmouseleave = function () {
+            element.style.background = baseColor;
+            element.style.backgroundImage = 'none';
+        };
+    }
+
+    function updatePreview() {
+        const corFundo = getInputValue('cor_fundo', '#f5f5f7');
+        const corSuperficie = getInputValue('cor_superficie', '#ffffff');
+        const corSuperficieSecundaria = getInputValue('cor_superficie_secundaria', '#f8fafc');
+        const corTexto = getInputValue('cor_texto', '#1f2937');
+        const corTextoSecundario = getInputValue('cor_texto_secundario', '#6b7280');
+        const corBorda = getInputValue('cor_borda', '#e5e7eb');
+        const corCabecalho = getInputValue('cor_cabecalho', '#111827');
+        const corCabecalhoDetalhe = getInputValue('cor_cabecalho_detalhe', '#7c3aed');
+        const corTextoCabecalho = getInputValue('cor_texto_cabecalho', '#ffffff');
+        const corBotaoPrimario = getInputValue('cor_botao_primario', '#7c3aed');
+        const corBotaoPrimarioHover = getInputValue('cor_botao_primario_hover', '#6d28d9');
+        const corPreco = getInputValue('cor_preco', '#111827');
+        const corDestaque = getInputValue('cor_destaque', '#7c3aed');
+        const mostrarPreco = mostrarPrecoSelect ? mostrarPrecoSelect.value === '1' : true;
+        const iconeCarrinhoSelecionado = document.querySelector('input[name="icone_carrinho_cor"]:checked')?.value || 'branco';
+
+        if (previewHeader) {
+            previewHeader.style.background = `linear-gradient(135deg, ${corCabecalho}, ${corCabecalhoDetalhe})`;
+            previewHeader.style.color = corTextoCabecalho;
+        }
+
+        if (previewBody) {
+            previewBody.style.background = corFundo;
+        }
+
+        if (previewCard) {
+            previewCard.style.background = corSuperficie;
+            previewCard.style.borderColor = corBorda;
+        }
+
+        if (previewImage) {
+            previewImage.style.background = corSuperficieSecundaria;
+        }
+
+        if (previewProductTitle) {
+            previewProductTitle.style.color = corTexto;
+        }
+
+        if (previewProductDesc) {
+            previewProductDesc.style.color = corTextoSecundario;
+        }
+
+        if (previewStock) {
+            previewStock.style.color = corTextoSecundario;
+        }
+
+        if (previewPrice) {
+            previewPrice.style.color = corPreco;
+            previewPrice.textContent = mostrarPreco ? 'R$ 129,90' : 'Consulte';
+        }
+
+        if (previewChip1) {
+            previewChip1.style.background = corSuperficie;
+            previewChip1.style.borderColor = corBorda;
+            previewChip1.style.color = corTexto;
+        }
+
+        if (previewChip2) {
+            previewChip2.style.background = corSuperficie;
+            previewChip2.style.borderColor = corDestaque;
+            previewChip2.style.color = corDestaque;
+        }
+
+        applyPrimaryStyle(previewBtn, corBotaoPrimario, corBotaoPrimarioHover);
+        applyPrimaryStyle(previewCartBtn, corBotaoPrimario, corBotaoPrimarioHover);
+        applyPrimaryStyle(previewFloatingCart, corBotaoPrimario, corBotaoPrimarioHover);
+
+        if (previewCartIcon) {
+            previewCartIcon.src = iconeCarrinhoSelecionado === 'preto'
+                ? CART_ICON_BLACK
+                : CART_ICON_WHITE;
+        }
+
+        if (previewFloatingCartIcon) {
+            previewFloatingCartIcon.src = iconeCarrinhoSelecionado === 'preto'
+                ? CART_ICON_BLACK
+                : CART_ICON_WHITE;
+        }
+
+        if (previewTitle) {
+            previewTitle.textContent = setTextIfEmpty(
+                cabecalhoTituloInput,
+                setTextIfEmpty(nomeCatalogoInput, 'Catálogo de produtos')
+            );
+        }
+
+        if (previewSubtitle) {
+            previewSubtitle.textContent = setTextIfEmpty(
+                cabecalhoSubtituloInput,
+                'Confira nossos produtos e novidades'
+            );
+        }
+    }
+
+    colorInputs.forEach(input => {
+        syncTextWithColor(input);
+
+        input.addEventListener('input', function () {
+            syncTextWithColor(input);
+            updatePreview();
+        });
+    });
+
+    document.querySelectorAll('.color-text').forEach(input => {
+        input.addEventListener('input', function () {
+            syncColorWithText(input);
+            updatePreview();
+        });
+
+        input.addEventListener('blur', function () {
+            const value = input.value.trim();
+            if (isValidHex(value)) {
+                input.value = value.toLowerCase();
+            }
+        });
+    });
+
+    [nomeCatalogoInput, cabecalhoTituloInput, cabecalhoSubtituloInput, mostrarPrecoSelect].forEach(el => {
+        if (!el) return;
+        el.addEventListener('input', updatePreview);
+        el.addEventListener('change', updatePreview);
+    });
+
+    cartIconInputs.forEach(input => {
+        input.addEventListener('change', updatePreview);
+    });
+
+    updatePreview();
+});
+</script>
+{% endblock %}

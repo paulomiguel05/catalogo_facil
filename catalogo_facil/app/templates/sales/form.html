@@ -1,0 +1,296 @@
+{% extends 'base.html' %}
+
+{% block title %}Nova venda{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2>Nova venda</h2>
+</div>
+
+<form method="post" class="form-card" autocomplete="off">
+    <div class="grid-2">
+        <div class="client-search-wrapper">
+            <label for="client_search">Cliente</label>
+            <input
+                type="text"
+                id="client_search"
+                placeholder="Digite o nome ou telefone do cliente"
+            >
+            <input type="hidden" name="client_id" id="client_id">
+            <div id="client_suggestions" class="suggestions-box"></div>
+        </div>
+
+        <label for="status">
+            Status do pagamento
+            <select name="status" id="status">
+                <option value="pendente" selected>Pagamento pendente</option>
+                <option value="pago">Pago</option>
+            </select>
+        </label>
+    </div>
+
+    <h3>Itens da venda</h3>
+
+    <div class="sale-items-wrapper">
+        <div id="sale-items">
+            <div class="sale-item-row">
+                <div class="grid-3">
+                    <div class="product-search-wrapper">
+                        <label>Produto</label>
+                        <input
+                            type="text"
+                            name="product_search[]"
+                            class="product-search"
+                            placeholder="Digite o nome do produto"
+                        >
+                        <input type="hidden" name="product_id[]" class="product-id">
+                        <div class="suggestions-box product-suggestions"></div>
+                    </div>
+
+                    <label>
+                        Quantidade
+                        <input type="number" name="quantidade[]" min="1" value="1" required>
+                        <small class="form-help">Ajustar o preço unitário.</small>
+                    </label>
+
+                    <label>
+                        Preço unitário
+                        <input type="number" name="preco_unitario[]" step="0.01" min="0" value="0" required>
+                        <small class="form-help">Ajustar o preço unitário.</small>
+                    </label>
+                </div>
+
+                <div class="actions">
+                    <button type="button" class="btn btn-secondary remove-item">Remover item</button>
+                </div>
+
+                <hr>
+            </div>
+        </div>
+
+        <button type="button" class="add-item-floating" id="add-item" aria-label="Adicionar item">+</button>
+    </div>
+
+    <div class="actions">
+        <button class="btn" type="submit">Salvar venda</button>
+        <a class="btn btn-secondary" href="{{ url_for('sales.list_sales') }}">Cancelar</a>
+    </div>
+</form>
+
+<template id="sale-item-template">
+    <div class="sale-item-row">
+        <div class="grid-3">
+            <div class="product-search-wrapper">
+                <label>Produto</label>
+                <input
+                    type="text"
+                    name="product_search[]"
+                    class="product-search"
+                    placeholder="Digite o nome do produto"
+                >
+                <input type="hidden" name="product_id[]" class="product-id">
+                <div class="suggestions-box product-suggestions"></div>
+            </div>
+
+            <label>
+                Quantidade
+                <input type="number" name="quantidade[]" min="1" value="1" required>
+                <small class="form-help">Ajustar o preço unitário.</small>
+            </label>
+
+            <label>
+                Preço unitário
+                <input type="number" name="preco_unitario[]" step="0.01" min="0" value="0.01" required>
+                <small class="form-help">Ajustar o preço unitário.</small>
+            </label>
+        </div>
+
+        <div class="actions">
+            <button type="button" class="btn btn-secondary remove-item">Remover item</button>
+        </div>
+
+        <hr>
+    </div>
+</template>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const saleItems = document.getElementById('sale-items');
+    const addItemButton = document.getElementById('add-item');
+    const template = document.getElementById('sale-item-template');
+
+    const clientSearch = document.getElementById('client_search');
+    const clientIdInput = document.getElementById('client_id');
+    const clientSuggestionsBox = document.getElementById('client_suggestions');
+
+    const CLIENT_SEARCH_URL = "{{ url_for('clients.search_clients') }}";
+    const PRODUCT_SEARCH_URL = "{{ url_for('products.search_products') }}";
+
+    function hideBox(box) {
+        if (!box) return;
+        box.innerHTML = '';
+        box.style.display = 'none';
+    }
+
+    function escapeHtml(text) {
+        return String(text ?? '')
+            .replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;')
+            .replaceAll('"', '&quot;')
+            .replaceAll("'", '&#039;');
+    }
+
+    function showClientSuggestions(clients) {
+        if (!clients.length) {
+            clientSuggestionsBox.innerHTML = '<div class="suggestion-item empty">Nenhum cliente encontrado</div>';
+            clientSuggestionsBox.style.display = 'block';
+            return;
+        }
+
+        clientSuggestionsBox.innerHTML = clients.map(client => `
+            <div
+                class="suggestion-item"
+                data-id="${client.id}"
+                data-name="${escapeHtml(client.nome)}"
+            >
+                <strong>${escapeHtml(client.nome)}</strong>
+                <small>${escapeHtml(client.telefone || client.numero || '')}</small>
+            </div>
+        `).join('');
+
+        clientSuggestionsBox.style.display = 'block';
+    }
+
+    function showProductSuggestions(products, suggestionsBox) {
+        if (!products.length) {
+            suggestionsBox.innerHTML = '<div class="suggestion-item empty">Nenhum produto encontrado</div>';
+            suggestionsBox.style.display = 'block';
+            return;
+        }
+
+        suggestionsBox.innerHTML = products.map(product => `
+            <div
+                class="suggestion-item"
+                data-id="${product.id}"
+                data-name="${escapeHtml(product.nome)}"
+                data-price="${product.preco}"
+            >
+                <strong>${escapeHtml(product.nome)}</strong>
+                <small>
+                    R$ ${Number(product.preco).toFixed(2)}
+                    ${(product.categoria ? ' • ' + escapeHtml(product.categoria) : '')}
+                </small>
+            </div>
+        `).join('');
+
+        suggestionsBox.style.display = 'block';
+    }
+
+    function bindClientSearch() {
+        clientSearch.addEventListener('input', async function () {
+            const q = clientSearch.value.trim();
+            clientIdInput.value = '';
+
+            if (q.length < 2) {
+                hideBox(clientSuggestionsBox);
+                return;
+            }
+
+            try {
+                const response = await fetch(`${CLIENT_SEARCH_URL}?q=${encodeURIComponent(q)}`);
+                if (!response.ok) throw new Error('Erro ao buscar clientes.');
+
+                const clients = await response.json();
+                showClientSuggestions(clients);
+            } catch (error) {
+                hideBox(clientSuggestionsBox);
+            }
+        });
+
+        clientSuggestionsBox.addEventListener('click', function (event) {
+            const item = event.target.closest('.suggestion-item');
+            if (!item || item.classList.contains('empty')) return;
+
+            clientSearch.value = item.dataset.name;
+            clientIdInput.value = item.dataset.id;
+            hideBox(clientSuggestionsBox);
+        });
+    }
+
+    function bindProductSearch(row) {
+        const productSearch = row.querySelector('.product-search');
+        const productIdInput = row.querySelector('.product-id');
+        const suggestionsBox = row.querySelector('.product-suggestions');
+        const priceInput = row.querySelector('input[name="preco_unitario[]"]');
+
+        productSearch.addEventListener('input', async function () {
+            const q = productSearch.value.trim();
+            productIdInput.value = '';
+
+            if (q.length < 2) {
+                hideBox(suggestionsBox);
+                return;
+            }
+
+            try {
+                const response = await fetch(`${PRODUCT_SEARCH_URL}?q=${encodeURIComponent(q)}`);
+                if (!response.ok) throw new Error('Erro ao buscar produtos.');
+
+                const products = await response.json();
+                showProductSuggestions(products, suggestionsBox);
+            } catch (error) {
+                hideBox(suggestionsBox);
+            }
+        });
+
+        suggestionsBox.addEventListener('click', function (event) {
+            const item = event.target.closest('.suggestion-item');
+            if (!item || item.classList.contains('empty')) return;
+
+            productSearch.value = item.dataset.name;
+            productIdInput.value = item.dataset.id;
+            priceInput.value = Number(item.dataset.price).toFixed(2);
+
+            hideBox(suggestionsBox);
+        });
+    }
+
+    function bindRowEvents(row) {
+        const removeButton = row.querySelector('.remove-item');
+
+        bindProductSearch(row);
+
+        removeButton.addEventListener('click', function () {
+            const rows = saleItems.querySelectorAll('.sale-item-row');
+            if (rows.length > 1) {
+                row.remove();
+            }
+        });
+    }
+
+    addItemButton.addEventListener('click', function () {
+        const clone = template.content.cloneNode(true);
+        saleItems.appendChild(clone);
+
+        const rows = saleItems.querySelectorAll('.sale-item-row');
+        bindRowEvents(rows[rows.length - 1]);
+    });
+
+    bindClientSearch();
+    saleItems.querySelectorAll('.sale-item-row').forEach(bindRowEvents);
+
+    document.addEventListener('click', function (event) {
+        if (!event.target.closest('.client-search-wrapper')) {
+            hideBox(clientSuggestionsBox);
+        }
+
+        document.querySelectorAll('.product-search-wrapper').forEach(wrapper => {
+            if (!wrapper.contains(event.target)) {
+                hideBox(wrapper.querySelector('.product-suggestions'));
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

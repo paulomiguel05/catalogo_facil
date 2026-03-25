@@ -1,0 +1,233 @@
+{% extends 'base.html' %}
+
+{% block title %}Categoria - {{ category.nome }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h2>{{ category.nome }}</h2>
+        <p>Produtos vinculados a esta categoria.</p>
+    </div>
+
+    <div class="actions">
+        <a class="btn btn-secondary" href="{{ url_for('categories.edit_category', category_id=category.id) }}">
+            Mudar nome da categoria
+        </a>
+
+        <button
+            type="button"
+            class="btn btn-sm btn-danger"
+            onclick='openDeleteCategoryModal({{ category.id }}, {{ category.nome|tojson }})'>
+            Deletar categoria
+        </button>
+
+        <a class="btn btn-secondary" href="{{ url_for('categories.list_categories') }}">
+            Voltar
+        </a>
+    </div>
+</div>
+
+<form
+    id="remove-products-form"
+    method="post"
+    action="{{ url_for('categories.remove_products_from_category', category_id=category.id) }}"
+>
+    <div class="page-header" style="margin-top: 8px;">
+        <div></div>
+
+        <div class="actions">
+            <button
+                class="btn btn-danger"
+                type="button"
+                onclick='openRemoveProductsModal({{ category.nome|tojson }})'>
+                Remover produto(s) da categoria
+            </button>
+        </div>
+    </div>
+
+    <div class="table-wrapper">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th style="width: 50px;">
+                        <input type="checkbox" id="select-all-products">
+                    </th>
+                    <th>Imagem</th>
+                    <th>Nome</th>
+                    <th>Preço</th>
+                    <th>Estoque</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for product in category.produtos %}
+                    <tr>
+                        <td>
+                            <input
+                                type="checkbox"
+                                name="product_ids"
+                                value="{{ product.id }}"
+                                class="product-checkbox"
+                            >
+                        </td>
+
+                        <td>
+                            {% if product and product.imagem %}
+                                <img
+                                    src="{{ url_for('main.media_produtos', filename=product.imagem) }}"
+                                    alt="{{ product.nome }}"
+                                    style="width: 60px; height: 60px; object-fit: cover; border-radius: 10px;"
+                                >
+                            {% else %}
+                                <div style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; background: #f1f1f1; border-radius: 10px; font-size: 12px; color: #777;">
+                                    Sem imagem
+                                </div>
+                            {% endif %}
+                        </td>
+
+                        <td>{{ product.nome }}</td>
+                        <td>R$ {{ '%.2f'|format(product.preco) }}</td>
+                        <td>{{ product.estoque }}</td>
+                        <td>
+                            {% if product.ativo %}
+                                <span class="badge badge-success">Ativo</span>
+                            {% else %}
+                                <span class="badge badge-danger">Inativo</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="6" style="text-align: center;">Nenhum produto nesta categoria.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</form>
+
+<div id="remove-products-modal" class="modal-overlay">
+    <div class="modal-box">
+        <h3>Remover produtos da categoria?</h3>
+        <p id="remove-products-text">
+            Os produtos selecionados serão removidos da categoria.
+        </p>
+
+        <div class="actions">
+            <button type="button" class="btn btn-secondary" onclick="closeRemoveProductsModal()">
+                Cancelar
+            </button>
+
+            <button type="button" id="confirm-remove-products-btn" class="btn btn-danger">
+                Sim, remover produto(s)
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="delete-category-modal" class="modal-overlay">
+    <div class="modal-box">
+        <h3>Deseja mesmo deletar esta categoria?</h3>
+        <p id="delete-category-text">
+            Essa ação apaga a categoria permanentemente.
+        </p>
+
+        <div class="actions">
+            <button type="button" class="btn btn-secondary" onclick="closeDeleteCategoryModal()">
+                Não
+            </button>
+
+            <form id="delete-category-form" method="post" action="">
+                <button type="submit" id="confirm-delete-category-btn" class="btn btn-danger">
+                    Sim, deletar categoria
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const selectAll = document.getElementById('select-all-products');
+    const checkboxes = document.querySelectorAll('.product-checkbox');
+    const confirmRemoveBtn = document.getElementById('confirm-remove-products-btn');
+
+    if (selectAll) {
+        selectAll.addEventListener('change', function () {
+            checkboxes.forEach(function (checkbox) {
+                checkbox.checked = selectAll.checked;
+            });
+        });
+    }
+
+    checkboxes.forEach(function (checkbox) {
+        checkbox.addEventListener('change', function () {
+            const total = checkboxes.length;
+            const checked = document.querySelectorAll('.product-checkbox:checked').length;
+
+            if (selectAll) {
+                selectAll.checked = total > 0 && checked === total;
+            }
+        });
+    });
+
+    if (confirmRemoveBtn) {
+        confirmRemoveBtn.addEventListener('click', function () {
+            document.getElementById('remove-products-form').submit();
+        });
+    }
+});
+
+function openRemoveProductsModal(categoryName) {
+    const checkedProducts = document.querySelectorAll('.product-checkbox:checked');
+
+    if (checkedProducts.length === 0) {
+        alert('Selecione ao menos um produto para remover da categoria.');
+        return;
+    }
+
+    const modal = document.getElementById('remove-products-modal');
+    const text = document.getElementById('remove-products-text');
+
+    text.textContent = `Os produtos selecionados serão removidos da categoria "${categoryName}". Essa ação não pode ser desfeita.`;
+    modal.classList.add('active');
+}
+
+function closeRemoveProductsModal() {
+    const modal = document.getElementById('remove-products-modal');
+    modal.classList.remove('active');
+}
+
+function openDeleteCategoryModal(categoryId, categoryName) {
+    const modal = document.getElementById('delete-category-modal');
+    const form = document.getElementById('delete-category-form');
+    const text = document.getElementById('delete-category-text');
+    const confirmBtn = document.getElementById('confirm-delete-category-btn');
+
+    form.action = `/categorias/${categoryId}/excluir`;
+    text.textContent = `A categoria "${categoryName}" será deletada permanentemente. Essa ação não pode ser desfeita.`;
+    confirmBtn.textContent = 'Sim, deletar categoria';
+
+    modal.classList.add('active');
+}
+
+function closeDeleteCategoryModal() {
+    const modal = document.getElementById('delete-category-modal');
+    modal.classList.remove('active');
+}
+
+document.addEventListener('click', function (event) {
+    const removeModal = document.getElementById('remove-products-modal');
+    const deleteModal = document.getElementById('delete-category-modal');
+
+    if (event.target === removeModal) {
+        closeRemoveProductsModal();
+    }
+
+    if (event.target === deleteModal) {
+        closeDeleteCategoryModal();
+    }
+});
+</script>
+{% endblock %}

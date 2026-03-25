@@ -1,0 +1,173 @@
+.container {
+    width: min(80%, calc(100% - 32px));
+    margin: 0 auto;
+    padding: 0 6px;
+}
+
+.site-main {
+    padding-top: 34px;
+    padding-bottom: 48px;
+}
+
+.topbar {
+    position: sticky;
+    top: 0;
+    z-index: 60;
+    backdrop-filter: blur(18px);
+    background: linear-gradient(180deg, rgba(10, 13, 21, 0.88), rgba(10, 13, 21, 0.76));
+    border-bottom: 1px solid rgba(170, 188, 255, 0.09);
+}
+
+.topbar-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 22px;
+    min-height: 84px;
+}
+
+.brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+    text-decoration: none;
+    min-width: 0;
+}
+
+.brand-mark {
+    position: relative;
+    width: 52px;
+    height: 52px;
+    display: grid;
+    place-items: center;
+    border-radius: 16px;
+    background: linear-gradient(145deg, rgba(139, 92, 246, 0.25), rgba(79, 70, 229, 0.18));
+    border: 1px solid rgba(170, 188, 255, 0.16);
+    box-shadow: 0 10px 24px rgba(79, 70, 229, 0.18);
+    overflow: hidden;
+}
+
+.brand-mark::after {
+    content: "";
+    position: absolute;
+    inset: -20%;
+    background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.16) 48%, transparent 66%);
+    transform: translateX(-100%) rotate(8deg);
+    animation: brandShine 5.4s ease-in-out infinite;
+}
+
+.brand-mark img {
+    width: 74%;
+    height: 74%;
+    object-fit: contain;
+    filter: drop-shadow(0 6px 12px rgba(139, 92, 246, 0.28));
+}
+
+.brand-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.brand-text strong {
+    font-size: 1.16rem;
+    color: #ffffff;
+    letter-spacing: -0.03em;
+}
+
+.brand-text small {
+    color: #a8b2ce;
+    font-size: 0.76rem;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+.topnav {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.topnav a {
+    position: relative;
+    padding: 5px 14px;
+    border-radius: 12px;
+    text-decoration: none;
+    color: #dce3ff;
+    font-size: 0.95rem;
+    transition: transform var(--transition), background var(--transition), color var(--transition), border-color var(--transition);
+    border: 1px solid transparent;
+}
+
+.topnav a:hover {
+    color: #fff;
+    background: rgba(139, 92, 246, 0.14);
+    border-color: rgba(139, 92, 246, 0.22);
+    transform: translateY(-1px);
+}
+
+.page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.page-header h1,
+.page-header h2,
+.page-header h4 {
+    margin-bottom: 8px;
+}
+
+.page-header > div:first-child p,
+.page-subtitle {
+    max-width: 760px;
+    margin: 0;
+    color: var(--muted);
+}
+
+.second-header {
+    margin-top: 30px;
+}
+
+@keyframes brandShine {
+    0%, 70%, 100% { transform: translateX(-110%) rotate(8deg); }
+    82% { transform: translateX(110%) rotate(8deg); }
+}
+
+@media (max-width: 980px) {
+    .topbar-inner {
+        min-height: auto;
+        padding: 16px 0;
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .topnav {
+        justify-content: flex-start;
+    }
+}
+
+@media (max-width: 640px) {
+    .container {
+        width: min(100%, calc(100% - 20px));
+    }
+
+    .site-main {
+        padding-top: 24px;
+        padding-bottom: 36px;
+    }
+
+    .brand-text small {
+        display: none;
+    }
+
+    .topnav a {
+        padding: 9px 12px;
+        font-size: 0.9rem;
+    }
+}
