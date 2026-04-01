@@ -18,7 +18,7 @@ https://www.facebook.com/profile.php?id=61577418121955
 
 // Sistema de gestão comercial para pequenas lojas.
 
-// Sistema de catálogo digital + Personalização de UX
+// Sistema de catálogo digital + Personalização de UI
 
 // Software de gestão de produto, clientes e vendas.
 
