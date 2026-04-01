@@ -10,7 +10,7 @@ Baixe a versão mais recente na aba **Releases** do projeto a direita -->
 
 https://www.facebook.com/profile.php?id=61577418121955
 
-## Catálogo Fácil é uma aplicação web local desenvolvida em Flask, com persistência em SQLite, voltada à gestão de produtos, categorias, clientes, vendas e catálogos digitais com personalização de UX. 
+## Catálogo Fácil é uma aplicação web local desenvolvida em Flask, com persistência em SQLite, voltada à gestão de produtos, categorias, clientes, vendas e catálogos digitais com personalização de UI. 
 
    O Software inclui:
 
@@ -51,7 +51,7 @@ https://www.facebook.com/profile.php?id=61577418121955
    - Status de pendências e cobrar com 2 clicks (total de venda e venda unica)
 
 * Catálogos digitais
-   - Criar / Customizar / Editar / Excluir catalogos (\* Logo \* Redes sociais da Loja \* Preço de venda \* Descrição de produto \* Quantidade \* Categorias ativas \* Carrinho de compra para seu cliente fazer pedido em seu whatsapp com poucos cliques ( com boa UX! ) 
+   - Criar / Customizar / Editar / Excluir catalogos (\* Logo \* Redes sociais da Loja \* Preço de venda \* Descrição de produto \* Quantidade \* Categorias ativas \* Carrinho de compra para seu cliente fazer pedido em seu whatsapp com poucos cliques ( com boa UI! ) 
    - Personalição de Cores do catalogo.
    - Baixar / Exportar Catalogo com todas as animações, parecendo um site! Obs: Abrir no navegador, catalogo não atualiza conforme o estoque, por isso sempre avisar que ele é do dia mencionado nem seu nome de arquivo.
 
